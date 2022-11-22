@@ -557,7 +557,7 @@ void KinodynamicAstar::init()
     path_node_pool_[i] = new PathNode;
   }
 
-  phi_ = Eigen::MatrixXd::Identity(6, 6);
+  phi_.setIdentity();
   use_node_num_ = 0;
   iter_num_ = 0;
 }

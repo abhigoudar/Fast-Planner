@@ -27,7 +27,7 @@ class PathNode {
  public:
   /* -------------------- */
   Eigen::Vector3i index;
-  Eigen::Matrix<double, 6, 1> state;
+  Eigen::Matrix<double, 6, 1, Eigen::DontAlign> state;
   double g_score, f_score;
   Eigen::Vector3d input;
   double duration;
@@ -113,7 +113,7 @@ class KinodynamicAstar {
 
   /* ---------- record data ---------- */
   Eigen::Vector3d start_vel_, end_vel_, start_acc_;
-  Eigen::Matrix<double, 6, 6> phi_;  // state transit matrix
+  Eigen::Matrix<double, 6, 6, Eigen::DontAlign> phi_;  // state transit matrix
   // shared_ptr<SDFMap> sdf_map;
   EDTEnvironment::Ptr edt_environment_;
   bool is_shot_succ_ = false;
