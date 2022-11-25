@@ -40,6 +40,7 @@ using namespace std;
 
 int obj_num;
 double _xy_size, _h_size, _vel, _yaw_dot, _acc_r1, _acc_r2, _acc_z, _scale1, _scale2, _interval;
+std::string frame_id_;
 
 ros::Publisher obj_pub;            // visualize marker
 vector<ros::Publisher> pose_pubs;  // obj pose (from optitrack)
@@ -79,6 +80,7 @@ int main(int argc, char** argv) {
   node.param("obj_generator/scale1", _scale1, 1.5);
   node.param("obj_generator/scale2", _scale2, 2.5);
   node.param("obj_generator/interval", _interval, 2.5);
+  node.param("sdf_map/frame_id", frame_id_, string("world"));
 
   obj_pub = node.advertise<visualization_msgs::Marker>("/dynamic/obj", 10);
   for (int i = 0; i < obj_num; ++i) {
@@ -197,7 +199,7 @@ void visualizeObj(int id) {
 
   /* ---------- rviz ---------- */
   visualization_msgs::Marker mk;
-  mk.header.frame_id = "world";
+  mk.header.frame_id = frame_id_;
   mk.header.stamp = ros::Time::now();
   mk.type = visualization_msgs::Marker::CUBE;
   mk.action = visualization_msgs::Marker::ADD;
@@ -217,7 +219,7 @@ void visualizeObj(int id) {
 
   /* ---------- pose ---------- */
   geometry_msgs::PoseStamped pose;
-  pose.header.frame_id = "world";
+  pose.header.frame_id = frame_id_;
   pose.header.seq = id;
   pose.pose.position.x = pos(0), pose.pose.position.y = pos(1), pose.pose.position.z = pos(2);
   pose.pose.orientation.w = 1.0;

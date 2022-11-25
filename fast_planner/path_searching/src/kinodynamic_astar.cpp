@@ -71,8 +71,13 @@ int KinodynamicAstar::search(Eigen::Vector3d start_pt, Eigen::Vector3d start_v, 
     expanded_nodes_.insert(cur_node->index, cur_node->time_idx, cur_node);
     // cout << "time start: " << time_start << endl;
   }
-  else
+  else{
+    //@fix
+    cur_node->time = 0.0;
     expanded_nodes_.insert(cur_node->index, cur_node);
+
+  }
+    
 
   PathNodePtr neighbor = NULL;
   PathNodePtr terminate_node = NULL;
@@ -84,7 +89,9 @@ int KinodynamicAstar::search(Eigen::Vector3d start_pt, Eigen::Vector3d start_v, 
     cur_node = open_set_.top();
 
     // Terminate?
+
     bool reach_horizon = (cur_node->state.head(3) - start_pt).norm() >= horizon_;
+
     bool near_end = abs(cur_node->index(0) - end_index(0)) <= tolerance &&
                     abs(cur_node->index(1) - end_index(1)) <= tolerance &&
                     abs(cur_node->index(2) - end_index(2)) <= tolerance;
@@ -167,7 +174,7 @@ int KinodynamicAstar::search(Eigen::Vector3d start_pt, Eigen::Vector3d start_v, 
         durations.push_back(tau);
     }
 
-    // cout << "cur state:" << cur_state.head(3).transpose() << endl;
+    //cout << "cur state:" << cur_state.head(3).transpose() << endl;
     for (int i = 0; i < inputs.size(); ++i)
       for (int j = 0; j < durations.size(); ++j)
       {
@@ -194,7 +201,7 @@ int KinodynamicAstar::search(Eigen::Vector3d start_pt, Eigen::Vector3d start_v, 
         if (fabs(pro_v(0)) > max_vel_ || fabs(pro_v(1)) > max_vel_ || fabs(pro_v(2)) > max_vel_)
         {
           if (init_search)
-            std::cout << "vel" << std::endl;
+            std::cout << "vel is" << pro_v << std::endl;
           continue;
         }
 
@@ -557,7 +564,7 @@ void KinodynamicAstar::init()
     path_node_pool_[i] = new PathNode;
   }
 
-  phi_.setIdentity();
+  phi_ = Eigen::MatrixXd::Identity(6, 6);
   use_node_num_ = 0;
   iter_num_ = 0;
 }
@@ -765,6 +772,9 @@ Eigen::Vector3i KinodynamicAstar::posToIndex(Eigen::Vector3d pt)
 int KinodynamicAstar::timeToIndex(double time)
 {
   int idx = floor((time - time_origin_) * inv_time_resolution_);
+
+  //@fix
+  return idx;
 }
 
 void KinodynamicAstar::stateTransit(Eigen::Matrix<double, 6, 1>& state0, Eigen::Matrix<double, 6, 1>& state1,

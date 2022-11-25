@@ -172,7 +172,7 @@ void BsplineOptimizer::optimize() {
   }
 
   try {
-    // cout << fixed << setprecision(7);
+    //cout << fixed << setprecision(7);
     // vec_time_.clear();
     // vec_cost_.clear();
     // time_start_ = ros::Time::now();
@@ -223,7 +223,7 @@ void BsplineOptimizer::calcDistanceCost(const vector<Eigen::Vector3d>& q, double
   Eigen::Vector3d zero(0, 0, 0);
   std::fill(gradient.begin(), gradient.end(), zero);
 
-  double          dist;
+  double          dist = 0.0;
   Eigen::Vector3d dist_grad, g_zero(0, 0, 0);
 
   int end_idx = (cost_function_ & ENDPOINT) ? q.size() : q.size() - order_;
@@ -451,7 +451,7 @@ void BsplineOptimizer::combineCost(const std::vector<double>& x, std::vector<dou
 double BsplineOptimizer::costFunction(const std::vector<double>& x, std::vector<double>& grad,
                                       void* func_data) {
   BsplineOptimizer* opt = reinterpret_cast<BsplineOptimizer*>(func_data);
-  double            cost;
+  double            cost = 0;
   opt->combineCost(x, grad, cost);
   opt->iter_num_++;
 
