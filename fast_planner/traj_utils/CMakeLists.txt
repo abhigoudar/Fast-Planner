@@ -17,22 +17,19 @@ endif()
 
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
+find_package(visualization_msgs REQUIRED)
 find_package(bspline REQUIRED)
 find_package(path_searching REQUIRED)
 find_package(poly_traj REQUIRED)
 find_package(plan_env REQUIRED)
-find_package(visualization_msgs REQUIRED)
-find_package(eigen3_cmake_module REQUIRED)
-find_package(Eigen3)
 
 set(DEPENDENCIES
-    rclcpp
-    bspline
-    path_searching
-    poly_traj
-    plan_env
-    visualization_msgs
-    eigen3_cmake_module
+  rclcpp
+  bspline
+  path_searching
+  poly_traj
+  plan_env
+  visualization_msgs
 )
 
 include_directories( 
@@ -55,7 +52,6 @@ install(
   DESTINATION include/
 )
 
-ament_export_dependencies(eigen3_cmake_module)
 ament_export_dependencies(${DEPENDENCIES})
 ament_export_libraries(traj_utils)
 ament_export_include_directories(include)

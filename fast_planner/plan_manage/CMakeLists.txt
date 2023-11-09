@@ -16,27 +16,27 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 endif()
 
 find_package(ament_cmake REQUIRED)
-find_package(ament_index_cpp REQUIRED)
-find_package(plan_env REQUIRED)
+find_package(rclcpp REQUIRED)
 find_package(path_searching REQUIRED)
 find_package(bspline REQUIRED)
+find_package(cv_bridge REQUIRED)
 find_package(bspline_opt REQUIRED)
 find_package(traj_utils REQUIRED)
-find_package(cv_bridge REQUIRED)
 find_package(poly_traj)
 find_package(visualization_msgs REQUIRED)
+find_package(rosidl_default_generators REQUIRED)
 
 find_package(NLopt REQUIRED)
 set(NLopt_INCLUDE_DIRS ${NLOPT_INCLUDE_DIR})
 
 set(DEPENDENCIES
-  plan_env
+  rclcpp
   path_searching
   bspline
   bspline_opt
   traj_utils
-  cv_bridge
   poly_traj
+  cv_bridge
   visualization_msgs
 )
 # Generate messages in the 'msg' folder
@@ -46,24 +46,25 @@ set(msg_files
 
 rosidl_generate_interfaces(${PROJECT_NAME}
   ${msg_files}
-  DEPENDENCIES builtin_interfaces geometry_msgs ament_index_cpp
-  ADD_LINTER_TESTS)
+  DEPENDENCIES builtin_interfaces geometry_msgs
+)
 
 include_directories(
   include
   ${PROJECT_SOURCE_DIR}/include
 )
 
-
 add_executable(fast_planner_node
   src/fast_planner_node.cpp 
   src/kino_replan_fsm.cpp
   src/topo_replan_fsm.cpp
   src/planner_manager.cpp
-  )
+)
+
 ament_target_dependencies(fast_planner_node ${DEPENDENCIES})
 target_link_libraries(fast_planner_node ${NLOPT_LIBRARIES})
 rosidl_target_interfaces(fast_planner_node ${PROJECT_NAME} "rosidl_typesupport_cpp")
+
 # add_executable(traj_server src/traj_server.cpp)
 # target_link_libraries(traj_server ${catkin_LIBRARIES})
 # add_dependencies(traj_server ${${PROJECT_NAME}_EXPORTED_TARGETS})

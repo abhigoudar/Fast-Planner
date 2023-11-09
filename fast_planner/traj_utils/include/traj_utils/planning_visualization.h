@@ -35,9 +35,6 @@
 #include <plan_env/obj_predictor.h>
 #include <poly_traj/polynomial_traj.h>
 
-#include <rclcpp/rclcpp.hpp>
-#include <visualization_msgs/msg/marker.hpp>
-
 using std::vector;
 namespace fast_planner {
 class PlanningVisualization {
@@ -76,7 +73,7 @@ private:
   int last_frontier_num_;
 
 public:
-  PlanningVisualization(/* args */) {}
+  // PlanningVisualization(/* args */) {}
   ~PlanningVisualization() {}
   PlanningVisualization(const rclcpp::Node::SharedPtr node_);
 

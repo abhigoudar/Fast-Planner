@@ -49,9 +49,9 @@ void KinoReplanFSM::init(const rclcpp::Node::SharedPtr nh) {
   // }
 
   /* initialize main modules */
-  planner_manager_.reset(new FastPlannerManager);
+  planner_manager_ = std::make_unique<FastPlannerManager>();
   planner_manager_->initPlanModules(nh);
-  visualization_.reset(new PlanningVisualization(nh));
+  visualization_ = std::make_unique<PlanningVisualization>(nh);
 
   /* callback */
   exec_timer_   = ros_node->create_wall_timer(std::chrono::milliseconds(10),

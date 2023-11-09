@@ -12,6 +12,7 @@
   <depend>std_msgs</depend>
   <depend>visualization_msgs</depend>
   <depend>cv_bridge</depend>
+  <depend>plan_env</depend>
 
   <buildtool_depend>eigen3_cmake_module</buildtool_depend>
   <build_depend>eigen</build_depend>

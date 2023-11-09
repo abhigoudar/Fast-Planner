@@ -35,25 +35,25 @@ PlanningVisualization::PlanningVisualization(const rclcpp::Node::SharedPtr nh) {
   ("/planning_vis/trajectory", rclcpp::SystemDefaultsQoS());
   pubs_.push_back(traj_pub_);
 
-  topo_pub_ = node->create_publisher<visualization_msgs::msg::Marker>
-  ("/planning_vis/topo_path", rclcpp::SystemDefaultsQoS());
-  pubs_.push_back(topo_pub_);
+  // topo_pub_ = node->create_publisher<visualization_msgs::msg::Marker>
+  // ("/planning_vis/topo_path", rclcpp::SystemDefaultsQoS());
+  // pubs_.push_back(topo_pub_);
 
-  predict_pub_ = node->create_publisher<visualization_msgs::msg::Marker>
-  ("/planning_vis/prediction", rclcpp::SystemDefaultsQoS());
-  pubs_.push_back(predict_pub_);
+  // predict_pub_ = node->create_publisher<visualization_msgs::msg::Marker>
+  // ("/planning_vis/prediction", rclcpp::SystemDefaultsQoS());
+  // pubs_.push_back(predict_pub_);
 
-  visib_pub_ = node->create_publisher<visualization_msgs::msg::Marker>
-  ("/planning_vis/visib_constraint", rclcpp::SystemDefaultsQoS());
-  pubs_.push_back(visib_pub_);
+  // visib_pub_ = node->create_publisher<visualization_msgs::msg::Marker>
+  // ("/planning_vis/visib_constraint", rclcpp::SystemDefaultsQoS());
+  // pubs_.push_back(visib_pub_);
 
-  frontier_pub_ = node->create_publisher<visualization_msgs::msg::Marker>
-  ("/planning_vis/frontier", rclcpp::SystemDefaultsQoS());
-  pubs_.push_back(frontier_pub_);
+  // frontier_pub_ = node->create_publisher<visualization_msgs::msg::Marker>
+  // ("/planning_vis/frontier", rclcpp::SystemDefaultsQoS());
+  // pubs_.push_back(frontier_pub_);
 
-  yaw_pub_ = node->create_publisher<visualization_msgs::msg::Marker>
-  ("/planning_vis/yaw", rclcpp::SystemDefaultsQoS());
-  pubs_.push_back(yaw_pub_);
+  // yaw_pub_ = node->create_publisher<visualization_msgs::msg::Marker>
+  // ("/planning_vis/yaw", rclcpp::SystemDefaultsQoS());
+  // pubs_.push_back(yaw_pub_);
 
   last_topo_path1_num_     = 0;
   last_topo_path2_num_     = 0;
@@ -340,7 +340,8 @@ void PlanningVisualization::drawPolynomialTraj(PolynomialTraj poly_traj, double 
 void PlanningVisualization::drawPrediction(ObjPrediction pred, double resolution,
                                            const Eigen::Vector4d& color, int id) {
   rclcpp::Time    time_now   = node->get_clock()->now();
-  double       start_time = (time_now.seconds() - ObjHistory::global_start_time_.seconds());
+  assert(false && "drawPrediction traj utils");
+  double       start_time = time_now.seconds();// - ObjHistory::global_start_time_.seconds());
   const double range      = 5.6;
 
   vector<Eigen::Vector3d> traj;

@@ -5,6 +5,7 @@
   <description>The fast_planner package</description>
   <maintainer email="bzhouai@todo.todo">bzhouai</maintainer>
   <license>TODO</license>
+
   <buildtool_depend>ament_cmake</buildtool_depend>
 
 
@@ -13,8 +14,10 @@
   <depend>path_searching</depend>
   <depend>bspline</depend>
   <depend>poly_traj</depend>
+  <depend>cv_bridge</depend>
   <depend>bspline_opt</depend>
-  <depend>plan_env</depend>
+  <depend>traj_utils</depend>
+
   <exec_depend>rosidl_default_runtime</exec_depend>
 
   <test_depend>ament_lint_common</test_depend>
