@@ -1,42 +1,64 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.5)
 project(path_searching)
+# Default to C99
+if(NOT CMAKE_C_STANDARD)
+  set(CMAKE_C_STANDARD 99)
+endif()
 
-find_package(Eigen3 REQUIRED)
-find_package(PCL 1.7 REQUIRED)
-ADD_COMPILE_OPTIONS(-std=c++11 )
-ADD_COMPILE_OPTIONS(-std=c++14 )
-find_package(catkin REQUIRED COMPONENTS
-  roscpp
-  rospy
-  std_msgs
-  visualization_msgs
-  plan_env
-  cv_bridge
-)
+# Default to C++14
+if(NOT CMAKE_CXX_STANDARD)
+  set(CMAKE_CXX_STANDARD 17)
+endif()
 
+if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  add_compile_options(-Wall -Wextra -Wpedantic)
+endif()
 
-catkin_package(
- INCLUDE_DIRS include
- LIBRARIES path_searching
- CATKIN_DEPENDS plan_env
-#  DEPENDS system_lib
+find_package(ament_cmake REQUIRED)
+find_package(rclcpp REQUIRED)
+find_package(std_msgs REQUIRED)
+find_package(visualization_msgs REQUIRED)
+find_package(cv_bridge REQUIRED)
+find_package(plan_env REQUIRED)
+
+find_package(eigen3_cmake_module REQUIRED)
+find_package(Eigen3)
+find_package(PCL REQUIRED)
+
+set(DEPENDENCIES
+    rclcpp
+    std_msgs
+    visualization_msgs
+    cv_bridge
+    eigen3_cmake_module
+    plan_env
 )
 
 include_directories( 
-    SYSTEM 
     include 
-    ${catkin_INCLUDE_DIRS}
     ${Eigen3_INCLUDE_DIRS} 
     ${PCL_INCLUDE_DIRS}
 )
-
-set(CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS} -O3 -Wall")
 
 add_library( path_searching 
     src/kinodynamic_astar.cpp 
     src/astar.cpp
     src/topo_prm.cpp
     )
-target_link_libraries( path_searching
-    ${catkin_LIBRARIES} 
-    )  
+ament_target_dependencies(path_searching ${DEPENDENCIES})
+
+install(TARGETS path_searching
+    ARCHIVE DESTINATION lib
+    LIBRARY DESTINATION lib
+    RUNTIME DESTINATION bin
+)
+
+install(
+  DIRECTORY include/
+  DESTINATION include/
+)
+
+ament_export_dependencies(${DEPENDENCIES})
+ament_export_libraries(path_searching)
+ament_export_include_directories(include)
+ament_package()

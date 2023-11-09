@@ -31,7 +31,7 @@ namespace fast_planner {
 
 int ObjHistory::queue_size_;
 int ObjHistory::skip_num_;
-ros::Time ObjHistory::global_start_time_;
+rclcpp::Time ObjHistory::global_start_time_;
 
 void ObjHistory::init(int id) {
   clear();
@@ -39,13 +39,15 @@ void ObjHistory::init(int id) {
   obj_idx_ = id;
 }
 
-void ObjHistory::poseCallback(const geometry_msgs::PoseStampedConstPtr& msg) {
+void ObjHistory::poseCallback(const geometry_msgs::msg::PoseStamped::SharedPtr msg) {
   ++skip_;
   if (skip_ < ObjHistory::skip_num_) return;
 
   Eigen::Vector4d pos_t;
-  pos_t(0) = msg->pose.position.x, pos_t(1) = msg->pose.position.y, pos_t(2) = msg->pose.position.z;
-  pos_t(3) = (ros::Time::now() - ObjHistory::global_start_time_).toSec();
+  pos_t(0) = msg->pose.position.x;
+  pos_t(1) = msg->pose.position.y;
+  pos_t(2) = msg->pose.position.z;
+  pos_t(3) = rclcpp::Time(msg->header.stamp).seconds() - ObjHistory::global_start_time_.seconds();
 
   history_.push_back(pos_t);
   // cout << "idx: " << obj_idx_ << "pos_t: " << pos_t.transpose() << endl;
@@ -61,7 +63,7 @@ void ObjHistory::poseCallback(const geometry_msgs::PoseStampedConstPtr& msg) {
 ObjPredictor::ObjPredictor(/* args */) {
 }
 
-ObjPredictor::ObjPredictor(ros::NodeHandle& node) {
+ObjPredictor::ObjPredictor(const rclcpp::Node::SharedPtr node) {
   this->node_handle_ = node;
 }
 
@@ -70,9 +72,10 @@ ObjPredictor::~ObjPredictor() {
 
 void ObjPredictor::init() {
   /* get param */
-  node_handle_.param("prediction/obj_num", obj_num_, 5);
-  node_handle_.param("prediction/lambda", lambda_, 1.0);
-  node_handle_.param("prediction/predict_rate", predict_rate_, 1.0);
+  assert(false && "obj_predictor.cpp init");
+  // node_handle_.param("prediction/obj_num", obj_num_, 5);
+  // node_handle_.param("prediction/lambda", lambda_, 1.0);
+  // node_handle_.param("prediction/predict_rate", predict_rate_, 1.0);
 
   predict_trajs_.reset(new vector<PolynomialPrediction>);
   predict_trajs_->resize(obj_num_);
@@ -90,18 +93,22 @@ void ObjPredictor::init() {
     obj_his->init(i);
     obj_histories_.push_back(obj_his);
 
-    ros::Subscriber pose_sub = node_handle_.subscribe<geometry_msgs::PoseStamped>(
-        "/dynamic/pose_" + std::to_string(i), 10, &ObjHistory::poseCallback, obj_his.get());
+    auto pose_sub = node_handle_->create_subscription<geometry_msgs::msg::PoseStamped>(
+        "/dynamic/pose_" + std::to_string(i), rclcpp::SystemDefaultsQoS(),
+        std::bind(&ObjHistory::poseCallback, obj_his.get(), std::placeholders::_1));
 
     pose_subs_.push_back(pose_sub);
   }
 
-  marker_sub_ = node_handle_.subscribe<visualization_msgs::Marker>("/dynamic/obj", 10,
-                                                                   &ObjPredictor::markerCallback, this);
+  marker_sub_ = node_handle_->create_subscription<visualization_msgs::msg::Marker>(
+      "/dynamic/obj", rclcpp::SystemDefaultsQoS(),
+      std::bind(&ObjPredictor::markerCallback, this, std::placeholders::_1));
 
   /* update prediction */
-  predict_timer_ =
-      node_handle_.createTimer(ros::Duration(1 / predict_rate_), &ObjPredictor::predictCallback, this);
+  // TODO: Check if milliseconds suffices
+  predict_timer_ = node_handle_->create_wall_timer(
+    std::chrono::milliseconds(int(1000.0/predict_rate_)),
+    std::bind(&ObjPredictor::predictCallback, this));
 }
 
 ObjPrediction ObjPredictor::getPredictionTraj() {
@@ -173,12 +180,12 @@ void ObjPredictor::predictPolyFit() {
   }
 }
 
-void ObjPredictor::predictCallback(const ros::TimerEvent& e) {
+void ObjPredictor::predictCallback() {
   // predictPolyFit();
   predictConstVel();
 }
 
-void ObjPredictor::markerCallback(const visualization_msgs::MarkerConstPtr& msg) {
+void ObjPredictor::markerCallback(const visualization_msgs::msg::Marker::SharedPtr msg) {
   int idx = msg->id;
   (*obj_scale_)[idx](0) = msg->scale.x;
   (*obj_scale_)[idx](1) = msg->scale.y;
@@ -192,7 +199,7 @@ void ObjPredictor::markerCallback(const visualization_msgs::MarkerConstPtr& msg)
   }
 
   if (finish_num == obj_num_) {
-    marker_sub_.shutdown();
+    marker_sub_.reset();
   }
 }
 

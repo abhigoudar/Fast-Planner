@@ -1,31 +1,58 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.5)
 project(poly_traj)
 
-set(CMAKE_BUILD_TYPE "Release")
-set(CMAKE_CXX_FLAGS "-std=c++14")
-set(CMAKE_CXX_FLAGS_RELEASE "-O3 -Wall -g")
 
-find_package(Eigen3 REQUIRED)
+# Default to C99
+if(NOT CMAKE_C_STANDARD)
+  set(CMAKE_C_STANDARD 99)
+endif()
 
-find_package(catkin REQUIRED COMPONENTS
-roscpp
-std_msgs
-)
+# Default to C++14
+if(NOT CMAKE_CXX_STANDARD)
+  set(CMAKE_CXX_STANDARD 17)
+endif()
 
-catkin_package(
-  INCLUDE_DIRS include
-  LIBRARIES poly_traj
+if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  add_compile_options(-Wall -Wextra -Wpedantic)
+endif()
+
+find_package(eigen3_cmake_module REQUIRED)
+find_package(Eigen3)
+
+find_package(ament_cmake REQUIRED)
+find_package(rclcpp REQUIRED)
+find_package(std_msgs REQUIRED)
+
+set(DEPENDENCIES
+  eigen3_cmake_module
+  rclcpp
+  std_msgs
 )
 
 include_directories(
-# include
-  ${catkin_INCLUDE_DIRS} ${PROJECT_SOURCE_DIR}/include
+  include
+  ${PROJECT_SOURCE_DIR}/include
   ${EIGEN3_INCLUDE_DIR}
 )
 
 add_library( poly_traj 
     src/polynomial_traj.cpp 
     )
-target_link_libraries( poly_traj
-    ${catkin_LIBRARIES} 
-    )  
+ament_target_dependencies(poly_traj ${DEPENDENCIES})
+
+install(TARGETS poly_traj
+    ARCHIVE DESTINATION lib
+    LIBRARY DESTINATION lib
+    RUNTIME DESTINATION bin
+)
+
+install(
+  DIRECTORY include/
+  DESTINATION include/
+)
+
+ament_export_dependencies(eigen3_cmake_module)
+ament_export_dependencies(${DEPENDENCIES})
+ament_export_libraries(poly_traj)
+ament_export_include_directories(include)
+ament_package()

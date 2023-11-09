@@ -21,29 +21,28 @@
 * along with Fast-Planner. If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <random>
+#include <string>
 
+#include <rclcpp/rclcpp.hpp>
+#include "visualization_msgs/msg/marker.hpp"
 
-#include "visualization_msgs/Marker.h"
-#include <ros/ros.h>
-
-#include <geometry_msgs/PoseStamped.h>
-#include <nav_msgs/Odometry.h>
+#include <geometry_msgs/msg/pose_stamped.hpp>
+#include <nav_msgs/msg/odometry.hpp>
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
 #include <pcl_conversions/pcl_conversions.h>
-#include <random>
-#include <sensor_msgs/PointCloud2.h>
-#include <string>
-
+#include <sensor_msgs/msg/point_cloud.hpp>
 #include <plan_env/linear_obj_model.hpp>
+
 using namespace std;
 
 int obj_num;
 double _xy_size, _h_size, _vel, _yaw_dot, _acc_r1, _acc_r2, _acc_z, _scale1, _scale2, _interval;
 std::string frame_id_;
 
-ros::Publisher obj_pub;            // visualize marker
-vector<ros::Publisher> pose_pubs;  // obj pose (from optitrack)
+rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr obj_pub;            // visualize marker
+vector<rclcpp::Publisher<geometry_msgs::msg::PoseStamped>::SharedPtr> pose_pubs;  // obj pose (from optitrack)
 vector<LinearObjModel> obj_models;
 
 random_device rd;
@@ -59,39 +58,56 @@ uniform_real_distribution<double> rand_scale;
 uniform_real_distribution<double> rand_yaw_dot;
 uniform_real_distribution<double> rand_yaw;
 
-ros::Time time_update, time_change;
+rclcpp::Node::SharedPtr ros_node;
+rclcpp::Time time_update, time_change;
 
-void updateCallback(const ros::TimerEvent& e);
-void visualizeObj(int id);
+void updateCallback();
+void visualizeObj(const int id, const rclcpp::Time);
+
+template<typename T>
+T safeParamLoad(const std::string ns,
+  const std::string param, const T& def_value)
+{
+  assert(false && "obj_generator safe paramlaod");
+  // if(config_[ns][param])
+  // {
+  //   return config_[ns][param].as<T>();
+  // }
+  // else
+  //   return def_value;
+}
 
 int main(int argc, char** argv) {
-  ros::init(argc, argv, "dynamic_obj");
-  ros::NodeHandle node("~");
+  rclcpp::init(argc, argv);
+  ros_node = std::make_shared<rclcpp::Node>(
+    "dynamic_obj", rclcpp::NodeOptions());
 
   /* ---------- initialize ---------- */
-  node.param("obj_generator/obj_num", obj_num, 10);
-  node.param("obj_generator/xy_size", _xy_size, 15.0);
-  node.param("obj_generator/h_size", _h_size, 5.0);
-  node.param("obj_generator/vel", _vel, 5.0);
-  node.param("obj_generator/yaw_dot", _yaw_dot, 5.0);
-  node.param("obj_generator/acc_r1", _acc_r1, 4.0);
-  node.param("obj_generator/acc_r2", _acc_r2, 6.0);
-  node.param("obj_generator/acc_z", _acc_z, 3.0);
-  node.param("obj_generator/scale1", _scale1, 1.5);
-  node.param("obj_generator/scale2", _scale2, 2.5);
-  node.param("obj_generator/interval", _interval, 2.5);
-  node.param("sdf_map/frame_id", frame_id_, string("world"));
+  obj_num = safeParamLoad<int>("obj_generator", "obj_num", 10);
+  _xy_size = safeParamLoad<double>("obj_generator", "xy_size", 15.0);
+  _h_size = safeParamLoad<double>("obj_generator", "h_size", 5.0);
+  _vel = safeParamLoad<double>("obj_generator", "vel", 5.0);
+  _yaw_dot = safeParamLoad<double>("obj_generator", "yaw_dot", 5.0);
+  _acc_r1 = safeParamLoad<double>("obj_generator", "acc_r1", 4.0);
+  _acc_r2 = safeParamLoad<double>("obj_generator", "acc_r2", 6.0);
+  _acc_z =  safeParamLoad<double>("obj_generator", "acc_z", 3.0);
+  _scale1 = safeParamLoad<double>("obj_generator", "scale1", 1.5);
+  _scale2 = safeParamLoad<double>("obj_generator", "scale2", 2.5);
+  _interval = safeParamLoad<double>("obj_generator", "interval", 2.5);
 
-  obj_pub = node.advertise<visualization_msgs::Marker>("/dynamic/obj", 10);
+  obj_pub = ros_node->create_publisher<visualization_msgs::msg::Marker>
+    ("/dynamic/obj", rclcpp::SystemDefaultsQoS());
   for (int i = 0; i < obj_num; ++i) {
-    ros::Publisher pose_pub =
-        node.advertise<geometry_msgs::PoseStamped>("/dynamic/pose_" + to_string(i), 10);
+    auto pose_pub =
+        ros_node->create_publisher<geometry_msgs::msg::PoseStamped>
+        ("/dynamic/pose_" + to_string(i), rclcpp::SystemDefaultsQoS());
     pose_pubs.push_back(pose_pub);
   }
 
-  ros::Timer update_timer = node.createTimer(ros::Duration(1 / 30.0), updateCallback);
+  rclcpp::TimerBase::SharedPtr update_timer = ros_node->create_wall_timer
+    (std::chrono::milliseconds(33), updateCallback);
   cout << "[dynamic]: initialize with " + to_string(obj_num) << " moving obj." << endl;
-  ros::Duration(1.0).sleep();
+  std::this_thread::sleep_for(std::chrono::seconds(1));
 
   rand_color = uniform_real_distribution<double>(0.0, 1.0);
   rand_pos = uniform_real_distribution<double>(-_xy_size, _xy_size);
@@ -126,20 +142,23 @@ int main(int argc, char** argv) {
     obj_models.push_back(model);
   }
 
-  time_update = ros::Time::now();
-  time_change = ros::Time::now();
+
+  time_update = ros_node->get_clock()->now();
+  time_change = ros_node->get_clock()->now();
 
   /* ---------- start loop ---------- */
-  ros::spin();
+  rclcpp::executors::SingleThreadedExecutor executor;
+  executor.add_node(ros_node);
+  executor.spin();
 
   return 0;
 }
 
-void updateCallback(const ros::TimerEvent& e) {
-  ros::Time time_now = ros::Time::now();
+void updateCallback() {
+  rclcpp::Time time_now = ros_node->get_clock()->now();
 
   /* ---------- change input ---------- */
-  double dtc = (time_now - time_change).toSec();
+  double dtc = (time_now.seconds() - time_change.seconds());
   if (dtc > _interval) {
     for (int i = 0; i < obj_num; ++i) {
       /* ---------- use acc input ---------- */
@@ -164,11 +183,11 @@ void updateCallback(const ros::TimerEvent& e) {
   }
 
   /* ---------- update obj state ---------- */
-  double dt = (time_now - time_update).toSec();
+  double dt = time_now.seconds() - time_change.seconds();
   time_update = time_now;
   for (int i = 0; i < obj_num; ++i) {
     obj_models[i].update(dt);
-    visualizeObj(i);
+    visualizeObj(i, time_now);
   }
 
   /* ---------- collision ---------- */
@@ -184,7 +203,7 @@ void updateCallback(const ros::TimerEvent& e) {
     }
 }
 
-void visualizeObj(int id) {
+void visualizeObj(int id, rclcpp::Time now_) {
   Eigen::Vector3d pos, color, scale;
   pos = obj_models[id].getPosition();
   color = obj_models[id].getColor();
@@ -198,11 +217,11 @@ void visualizeObj(int id) {
   qua = rot;
 
   /* ---------- rviz ---------- */
-  visualization_msgs::Marker mk;
+  visualization_msgs::msg::Marker mk;
   mk.header.frame_id = frame_id_;
-  mk.header.stamp = ros::Time::now();
-  mk.type = visualization_msgs::Marker::CUBE;
-  mk.action = visualization_msgs::Marker::ADD;
+  mk.header.stamp = now_;
+  mk.type = visualization_msgs::msg::Marker::CUBE;
+  mk.action = visualization_msgs::msg::Marker::ADD;
   mk.id = id;
 
   mk.scale.x = scale(0), mk.scale.y = scale(1), mk.scale.z = scale(2);
@@ -213,15 +232,19 @@ void visualizeObj(int id) {
   mk.pose.orientation.y = qua.y();
   mk.pose.orientation.z = qua.z();
 
-  mk.pose.position.x = pos(0), mk.pose.position.y = pos(1), mk.pose.position.z = pos(2);
+  mk.pose.position.x = pos(0);
+  mk.pose.position.y = pos(1);
+  mk.pose.position.z = pos(2);
 
-  obj_pub.publish(mk);
+  obj_pub->publish(mk);
 
   /* ---------- pose ---------- */
-  geometry_msgs::PoseStamped pose;
+  geometry_msgs::msg::PoseStamped pose;
   pose.header.frame_id = frame_id_;
-  pose.header.seq = id;
-  pose.pose.position.x = pos(0), pose.pose.position.y = pos(1), pose.pose.position.z = pos(2);
+  pose.header.stamp = now_;
+  pose.pose.position.x = pos(0);
+  pose.pose.position.y = pos(1);
+  pose.pose.position.z = pos(2);
   pose.pose.orientation.w = 1.0;
-  pose_pubs[id].publish(pose);
+  pose_pubs[id]->publish(pose);
 }

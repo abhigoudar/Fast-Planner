@@ -26,12 +26,9 @@
 #ifndef _EDT_ENVIRONMENT_H_
 #define _EDT_ENVIRONMENT_H_
 
-#include <Eigen/Eigen>
-#include <geometry_msgs/PoseStamped.h>
 #include <iostream>
-#include <ros/ros.h>
 #include <utility>
-
+#include <Eigen/Eigen>
 #include <plan_env/obj_predictor.h>
 #include <plan_env/sdf_map.h>
 

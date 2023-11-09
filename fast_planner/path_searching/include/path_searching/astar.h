@@ -29,10 +29,10 @@
 #include <Eigen/Eigen>
 #include <iostream>
 #include <map>
-#include <ros/console.h>
-#include <ros/ros.h>
 #include <string>
 #include <unordered_map>
+
+#include <rclcpp/rclcpp.hpp>
 // #include "grad_spline/sdf_map.h"
 #include "plan_env/edt_environment.h"
 #include <boost/functional/hash.hpp>
@@ -160,7 +160,7 @@ public:
   enum { REACH_END = 1, NO_PATH = 2 };
 
   /* main API */
-  void setParam(ros::NodeHandle& nh);
+  void setParam(const rclcpp::Node::SharedPtr);
   void init();
   void reset();
   int search(Eigen::Vector3d start_pt, Eigen::Vector3d end_pt, bool dynamic = false,

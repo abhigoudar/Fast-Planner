@@ -28,23 +28,26 @@
 
 namespace fast_planner {
 
-void TopoReplanFSM::init(ros::NodeHandle& nh) {
+void TopoReplanFSM::init(const rclcpp::Node::SharedPtr nh) {
+  ros_node = nh;
   current_wp_  = 0;
+
   exec_state_  = FSM_EXEC_STATE::INIT;
   have_target_ = false;
   collide_     = false;
 
+  assert(false && "topo_replan_fsm.cpp");
   /*  fsm param  */
-  nh.param("fsm/flight_type", target_type_, -1);
-  nh.param("fsm/thresh_replan", replan_time_threshold_, -1.0);
-  nh.param("fsm/thresh_no_replan", replan_distance_threshold_, -1.0);
-  nh.param("fsm/waypoint_num", waypoint_num_, -1);
-  nh.param("fsm/act_map", act_map_, false);
-  for (int i = 0; i < waypoint_num_; i++) {
-    nh.param("fsm/waypoint" + to_string(i) + "_x", waypoints_[i][0], -1.0);
-    nh.param("fsm/waypoint" + to_string(i) + "_y", waypoints_[i][1], -1.0);
-    nh.param("fsm/waypoint" + to_string(i) + "_z", waypoints_[i][2], -1.0);
-  }
+  // nh.param("fsm/flight_type", target_type_, -1);
+  // nh.param("fsm/thresh_replan", replan_time_threshold_, -1.0);
+  // nh.param("fsm/thresh_no_replan", replan_distance_threshold_, -1.0);
+  // nh.param("fsm/waypoint_num", waypoint_num_, -1);
+  // nh.param("fsm/act_map", act_map_, false);
+  // for (int i = 0; i < waypoint_num_; i++) {
+  //   nh.param("fsm/waypoint" + to_string(i) + "_x", waypoints_[i][0], -1.0);
+  //   nh.param("fsm/waypoint" + to_string(i) + "_y", waypoints_[i][1], -1.0);
+  //   nh.param("fsm/waypoint" + to_string(i) + "_z", waypoints_[i][2], -1.0);
+  // }
 
   /* initialize main modules */
   planner_manager_.reset(new FastPlannerManager);
@@ -52,19 +55,23 @@ void TopoReplanFSM::init(ros::NodeHandle& nh) {
   visualization_.reset(new PlanningVisualization(nh));
 
   /* callback */
-  exec_timer_   = nh.createTimer(ros::Duration(0.01), &TopoReplanFSM::execFSMCallback, this);
-  safety_timer_ = nh.createTimer(ros::Duration(0.05), &TopoReplanFSM::checkCollisionCallback, this);
+  exec_timer_   = ros_node->create_wall_timer(std::chrono::milliseconds(10),
+    std::bind(&TopoReplanFSM::execFSMCallback, this));
+  safety_timer_ = ros_node->create_wall_timer(std::chrono::milliseconds(50),
+    std::bind(&TopoReplanFSM::checkCollisionCallback, this));
 
-  waypoint_sub_ =
-      nh.subscribe("/waypoint_generator/waypoints", 1, &TopoReplanFSM::waypointCallback, this);
-  odom_sub_ = nh.subscribe("/odom_world", 1, &TopoReplanFSM::odometryCallback, this);
+  waypoint_sub_ = ros_node->create_subscription<nav_msgs::msg::Path>("/waypoint_generator/waypoints",
+    rclcpp::SystemDefaultsQoS(), std::bind(&TopoReplanFSM::waypointCallback, this, std::placeholders::_1));
 
-  replan_pub_  = nh.advertise<std_msgs::Empty>("/planning/replan", 20);
-  new_pub_     = nh.advertise<std_msgs::Empty>("/planning/new", 20);
-  bspline_pub_ = nh.advertise<plan_manage::Bspline>("/planning/bspline", 20);
+  odom_sub_ = ros_node->create_subscription<nav_msgs::msg::Odometry>("/odom_world",
+    rclcpp::SystemDefaultsQoS(), std::bind(&TopoReplanFSM::odometryCallback, this, std::placeholders::_1));
+
+  replan_pub_  = ros_node->create_publisher<std_msgs::msg::Empty>("/planning/replan", 10);
+  new_pub_     = ros_node->create_publisher<std_msgs::msg::Empty>("/planning/new", 10);
+  bspline_pub_ = ros_node->create_publisher<plan_manage::msg::Bspline>("/planning/bspline", 10);
 }
 
-void TopoReplanFSM::waypointCallback(const nav_msgs::PathConstPtr& msg) {
+void TopoReplanFSM::waypointCallback(const nav_msgs::msg::Path::SharedPtr msg) {
   if (msg->poses[0].pose.position.z < -0.1) return;
   cout << "Triggered!" << endl;
 
@@ -108,7 +115,7 @@ void TopoReplanFSM::waypointCallback(const nav_msgs::PathConstPtr& msg) {
   }
 }
 
-void TopoReplanFSM::odometryCallback(const nav_msgs::OdometryConstPtr& msg) {
+void TopoReplanFSM::odometryCallback(const nav_msgs::msg::Odometry::SharedPtr msg) {
   odom_pos_(0) = msg->pose.pose.position.x;
   odom_pos_(1) = msg->pose.pose.position.y;
   odom_pos_(2) = msg->pose.pose.position.z;
@@ -149,7 +156,7 @@ void TopoReplanFSM::printFSMExecState() {
   cout << "state: " + state_str[int(exec_state_)] << endl;
 }
 
-void TopoReplanFSM::execFSMCallback(const ros::TimerEvent& e) {
+void TopoReplanFSM::execFSMCallback() {
   static int fsm_num = 0;
   fsm_num++;
   if (fsm_num == 100) {
@@ -191,7 +198,7 @@ void TopoReplanFSM::execFSMCallback(const ros::TimerEvent& e) {
       start_yaw_(0)         = atan2(rot_x(1), rot_x(0));
       start_yaw_(1) = start_yaw_(2) = 0.0;
 
-      new_pub_.publish(std_msgs::Empty());
+      new_pub_->publish(std_msgs::msg::Empty());
       /* topo path finding and optimization */
       bool success = callTopologicalTraj(1);
       if (success) {
@@ -206,8 +213,8 @@ void TopoReplanFSM::execFSMCallback(const ros::TimerEvent& e) {
       /* determine if need to replan */
 
       GlobalTrajData* global_data = &planner_manager_->global_data_;
-      ros::Time       time_now    = ros::Time::now();
-      double          t_cur       = (time_now - global_data->global_start_time_).toSec();
+      rclcpp::Time    time_now    = ros_node->get_clock()->now();
+      double          t_cur       = (time_now.seconds() - global_data->global_start_time_.seconds());
 
       if (t_cur > global_data->global_duration_ - 1e-2) {
         have_target_ = false;
@@ -217,7 +224,7 @@ void TopoReplanFSM::execFSMCallback(const ros::TimerEvent& e) {
       } else {
         LocalTrajData*  info      = &planner_manager_->local_data_;
         Eigen::Vector3d start_pos = info->start_pos_;
-        t_cur                     = (time_now - info->start_time_).toSec();
+        t_cur                     = (time_now.seconds() - info->start_time_.seconds());
 
         if (t_cur > replan_time_threshold_) {
 
@@ -237,8 +244,8 @@ void TopoReplanFSM::execFSMCallback(const ros::TimerEvent& e) {
 
     case REPLAN_TRAJ: {
       LocalTrajData* info     = &planner_manager_->local_data_;
-      ros::Time      time_now = ros::Time::now();
-      double         t_cur    = (time_now - info->start_time_).toSec();
+      rclcpp::Time   time_now = ros_node->get_clock()->now();
+      double         t_cur    = (time_now.seconds() - info->start_time_.seconds());
 
       start_pt_  = info->position_traj_.evaluateDeBoorT(t_cur);
       start_vel_ = info->velocity_traj_.evaluateDeBoorT(t_cur);
@@ -252,22 +259,22 @@ void TopoReplanFSM::execFSMCallback(const ros::TimerEvent& e) {
       if (success) {
         changeFSMExecState(EXEC_TRAJ, "FSM");
       } else {
-        ROS_WARN("Replan fail, retrying...");
+        RCLCPP_WARN(ros_node->get_logger(), "Replan fail, retrying...");
       }
 
       break;
     }
     case REPLAN_NEW: {
       LocalTrajData* info     = &planner_manager_->local_data_;
-      ros::Time      time_now = ros::Time::now();
-      double         t_cur    = (time_now - info->start_time_).toSec();
+      rclcpp::Time   time_now = ros_node->get_clock()->now();
+      double         t_cur    = (time_now.seconds() - info->start_time_.seconds());
 
       start_pt_  = info->position_traj_.evaluateDeBoorT(t_cur);
       start_vel_ = info->velocity_traj_.evaluateDeBoorT(t_cur);
       start_acc_ = info->acceleration_traj_.evaluateDeBoorT(t_cur);
 
       /* inform server */
-      new_pub_.publish(std_msgs::Empty());
+      new_pub_->publish(std_msgs::msg::Empty());
 
       // bool success = callSearchAndOptimization();
       bool success = callTopologicalTraj(1);
@@ -282,7 +289,7 @@ void TopoReplanFSM::execFSMCallback(const ros::TimerEvent& e) {
   }
 }
 
-void TopoReplanFSM::checkCollisionCallback(const ros::TimerEvent& e) {
+void TopoReplanFSM::checkCollisionCallback() {
   LocalTrajData* info = &planner_manager_->local_data_;
 
   /* ---------- check goal safety ---------- */
@@ -354,12 +361,12 @@ void TopoReplanFSM::checkCollisionCallback(const ros::TimerEvent& e) {
     bool   safe = planner_manager_->checkTrajCollision(dist);
     if (!safe) {
       if (dist > 0.5) {
-        ROS_WARN("current traj %lf m to collision", dist);
+        RCLCPP_WARN(ros_node->get_logger(), "current traj %lf m to collision", dist);
         collide_ = true;
         changeFSMExecState(REPLAN_TRAJ, "SAFETY");
       } else {
-        ROS_ERROR("current traj %lf m to collision, emergency stop!", dist);
-        replan_pub_.publish(std_msgs::Empty());
+        RCLCPP_ERROR(ros_node->get_logger(), "current traj %lf m to collision, emergency stop!", dist);
+        replan_pub_->publish(std_msgs::msg::Empty());
         have_target_ = false;
         changeFSMExecState(WAIT_TARGET, "SAFETY");
       }
@@ -389,7 +396,7 @@ bool TopoReplanFSM::callTopologicalTraj(int step) {
     /* publish newest trajectory to server */
 
     /* publish traj */
-    plan_manage::Bspline bspline;
+    plan_manage::msg::Bspline bspline;
     bspline.order      = 3;
     bspline.start_time = locdat->start_time_;
     bspline.traj_id    = locdat->traj_id_;
@@ -397,7 +404,7 @@ bool TopoReplanFSM::callTopologicalTraj(int step) {
     Eigen::MatrixXd pos_pts = locdat->position_traj_.getControlPoint();
 
     for (int i = 0; i < pos_pts.rows(); ++i) {
-      geometry_msgs::Point pt;
+      geometry_msgs::msg::Point pt;
       pt.x = pos_pts(i, 0);
       pt.y = pos_pts(i, 1);
       pt.z = pos_pts(i, 2);
@@ -416,7 +423,7 @@ bool TopoReplanFSM::callTopologicalTraj(int step) {
     }
     bspline.yaw_dt = locdat->yaw_traj_.getInterval();
 
-    bspline_pub_.publish(bspline);
+    bspline_pub_->publish(bspline);
 
     /* visualize new trajectories */
 

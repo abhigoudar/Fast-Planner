@@ -106,7 +106,7 @@ int KinodynamicAstar::search(Eigen::Vector3d start_pt, Eigen::Vector3d start_v, 
         estimateHeuristic(cur_node->state, end_state, time_to_goal);
         computeShotTraj(cur_node->state, end_state, time_to_goal);
         if (init_search)
-          ROS_ERROR("Shot in first search loop!");
+          std::cerr << "Shot in first search loop!";
       }
     }
     if (reach_horizon)
@@ -328,24 +328,25 @@ int KinodynamicAstar::search(Eigen::Vector3d start_pt, Eigen::Vector3d start_v, 
   return NO_PATH;
 }
 
-void KinodynamicAstar::setParam(ros::NodeHandle& nh)
+void KinodynamicAstar::setParam(const rclcpp::Node::SharedPtr nh)
 {
-  nh.param("search/max_tau", max_tau_, -1.0);
-  nh.param("search/init_max_tau", init_max_tau_, -1.0);
-  nh.param("search/max_vel", max_vel_, -1.0);
-  nh.param("search/max_acc", max_acc_, -1.0);
-  nh.param("search/w_time", w_time_, -1.0);
-  nh.param("search/horizon", horizon_, -1.0);
-  nh.param("search/resolution_astar", resolution_, -1.0);
-  nh.param("search/time_resolution", time_resolution_, -1.0);
-  nh.param("search/lambda_heu", lambda_heu_, -1.0);
-  nh.param("search/allocate_num", allocate_num_, -1);
-  nh.param("search/check_num", check_num_, -1);
-  nh.param("search/optimistic", optimistic_, true);
+  assert(false && " kinodynamic_astar setparam");
+  // nh.param("search/max_tau", max_tau_, -1.0);
+  // nh.param("search/init_max_tau", init_max_tau_, -1.0);
+  // nh.param("search/max_vel", max_vel_, -1.0);
+  // nh.param("search/max_acc", max_acc_, -1.0);
+  // nh.param("search/w_time", w_time_, -1.0);
+  // nh.param("search/horizon", horizon_, -1.0);
+  // nh.param("search/resolution_astar", resolution_, -1.0);
+  // nh.param("search/time_resolution", time_resolution_, -1.0);
+  // nh.param("search/lambda_heu", lambda_heu_, -1.0);
+  // nh.param("search/allocate_num", allocate_num_, -1);
+  // nh.param("search/check_num", check_num_, -1);
+  // nh.param("search/optimistic", optimistic_, true);
   tie_breaker_ = 1.0 + 1.0 / 10000;
 
   double vel_margin;
-  nh.param("search/vel_margin", vel_margin, 0.0);
+  // nh.param("search/vel_margin", vel_margin, 0.0);
   max_vel_ += vel_margin;
 }
 

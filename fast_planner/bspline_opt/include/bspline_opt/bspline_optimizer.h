@@ -26,10 +26,9 @@
 #ifndef _BSPLINE_OPTIMIZER_H_
 #define _BSPLINE_OPTIMIZER_H_
 
-#include <Eigen/Eigen>
+#include <Eigen/Dense>
 #include <plan_env/edt_environment.h>
-#include <ros/ros.h>
-
+#include <rclcpp/rclcpp.hpp>
 // Gradient and elasitc band optimization
 
 // Input: a signed distance field and a sequence of points
@@ -52,9 +51,22 @@ public:
   BsplineOptimizer() {}
   ~BsplineOptimizer() {}
 
+  template<typename T>
+  T safeParamLoad(const std::string ns,
+    const std::string param, const T& def_value)
+  {
+    assert(false && "safeParamLoad bsplineoptimizer");
+    // if(config_[ns][param])
+    // {
+    //   return config_[ns][param].as<T>();
+    // }
+    // else
+    //   return def_value;
+  }
+
   /* main API */
   void            setEnvironment(const EDTEnvironment::Ptr& env);
-  void            setParam(ros::NodeHandle& nh);
+  void            setParam(rclcpp::Node::SharedPtr nh);
   Eigen::MatrixXd BsplineOptimizeTraj(const Eigen::MatrixXd& points, const double& ts,
                                       const int& cost_function, int max_num_id, int max_time_id);
 
@@ -161,7 +173,7 @@ private:
 public:
   vector<double> vec_cost_;
   vector<double> vec_time_;
-  ros::Time      time_start_;
+  rclcpp::Time      time_start_;
 
   void getCostCurve(vector<double>& cost, vector<double>& time) {
     cost = vec_cost_;

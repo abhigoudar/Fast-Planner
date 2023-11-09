@@ -1,54 +1,57 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.5)
 project(plan_manage)
 
-set(CMAKE_BUILD_TYPE "Release")
-set(CMAKE_CXX_FLAGS "-std=c++14")
-set(CMAKE_CXX_FLAGS_RELEASE "-O3 -Wall -g")
+# Default to C99
+if(NOT CMAKE_C_STANDARD)
+  set(CMAKE_C_STANDARD 99)
+endif()
 
-find_package(Eigen3 REQUIRED)
-find_package(PCL 1.7 REQUIRED)
+# Default to C++14
+if(NOT CMAKE_CXX_STANDARD)
+  set(CMAKE_CXX_STANDARD 17)
+endif()
 
-find_package(catkin REQUIRED COMPONENTS
-  roscpp
-  std_msgs
-  geometry_msgs
-  quadrotor_msgs
+if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  add_compile_options(-Wall -Wextra -Wpedantic)
+endif()
+
+find_package(ament_cmake REQUIRED)
+find_package(ament_index_cpp REQUIRED)
+find_package(plan_env REQUIRED)
+find_package(path_searching REQUIRED)
+find_package(bspline REQUIRED)
+find_package(bspline_opt REQUIRED)
+find_package(traj_utils REQUIRED)
+find_package(cv_bridge REQUIRED)
+find_package(poly_traj)
+find_package(visualization_msgs REQUIRED)
+
+find_package(NLopt REQUIRED)
+set(NLopt_INCLUDE_DIRS ${NLOPT_INCLUDE_DIR})
+
+set(DEPENDENCIES
   plan_env
   path_searching
   bspline
   bspline_opt
   traj_utils
-  message_generation
   cv_bridge
+  poly_traj
+  visualization_msgs
 )
-
 # Generate messages in the 'msg' folder
-add_message_files(
-  FILES
-  Bspline.msg
-  )
-  
-# Generate added messages and services with any dependencies listed here
-generate_messages(
-  DEPENDENCIES
-  std_msgs
-  geometry_msgs
+set(msg_files
+  "msg/Bspline.msg"
 )
 
-# catkin_package(CATKIN_DEPENDS message_runtime)
-catkin_package(
- INCLUDE_DIRS include
- LIBRARIES plan_manage
- CATKIN_DEPENDS plan_env path_searching bspline bspline_opt traj_utils message_runtime
-#  DEPENDS system_lib
-)
+rosidl_generate_interfaces(${PROJECT_NAME}
+  ${msg_files}
+  DEPENDENCIES builtin_interfaces geometry_msgs ament_index_cpp
+  ADD_LINTER_TESTS)
 
 include_directories(
   include
-  SYSTEM
-  ${catkin_INCLUDE_DIRS} ${PROJECT_SOURCE_DIR}/include
-  ${EIGEN3_INCLUDE_DIR}
-  ${PCL_INCLUDE_DIRS}
+  ${PROJECT_SOURCE_DIR}/include
 )
 
 
@@ -58,12 +61,28 @@ add_executable(fast_planner_node
   src/topo_replan_fsm.cpp
   src/planner_manager.cpp
   )
-target_link_libraries(fast_planner_node 
-  ${catkin_LIBRARIES}
-  )
+ament_target_dependencies(fast_planner_node ${DEPENDENCIES})
+target_link_libraries(fast_planner_node ${NLOPT_LIBRARIES})
+rosidl_target_interfaces(fast_planner_node ${PROJECT_NAME} "rosidl_typesupport_cpp")
+# add_executable(traj_server src/traj_server.cpp)
+# target_link_libraries(traj_server ${catkin_LIBRARIES})
+# add_dependencies(traj_server ${${PROJECT_NAME}_EXPORTED_TARGETS})
 
-add_executable(traj_server src/traj_server.cpp)
-target_link_libraries(traj_server ${catkin_LIBRARIES})
-add_dependencies(traj_server ${${PROJECT_NAME}_EXPORTED_TARGETS})
+install(TARGETS fast_planner_node
+    ARCHIVE DESTINATION lib
+    LIBRARY DESTINATION lib
+    RUNTIME DESTINATION bin
+)
 
+# install(TARGETS traj_server
+#     ARCHIVE DESTINATION lib
+#     LIBRARY DESTINATION lib
+#     RUNTIME DESTINATION bin
+# )
 
+ament_export_dependencies(eigen3_cmake_module)
+ament_export_dependencies(${DEPENDENCIES})
+ament_export_libraries(plan_manage)
+ament_export_include_directories(include)
+ament_export_dependencies(rosidl_default_runtime)
+ament_package()

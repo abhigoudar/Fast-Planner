@@ -113,6 +113,7 @@ class TopologyPRM {
 private:
   /* data */
   EDTEnvironment::Ptr edt_environment_;  // environment representation
+  rclcpp::Node::SharedPtr nh;
 
   // sampling generator
   random_device rd_;
@@ -187,7 +188,7 @@ public:
   TopologyPRM(/* args */);
   ~TopologyPRM();
 
-  void init(ros::NodeHandle& nh);
+  void init(const rclcpp::Node::SharedPtr);
 
   void setEnvironment(const EDTEnvironment::Ptr& env);
 
