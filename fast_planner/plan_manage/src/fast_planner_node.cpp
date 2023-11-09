@@ -42,8 +42,8 @@ int main(int argc, char** argv) {
   rclcpp::executors::SingleThreadedExecutor executor;
 
   int planner = 1;
-  node->declare_parameter("planner_node/planner", -1);
-  planner = node->get_parameter("planner_node/planner").as_int();
+  node->declare_parameter("planner_node.planner", -1);
+  planner = node->get_parameter("planner_node.planner").as_int();
   RCLCPP_INFO(node->get_logger(), " Planner:[%d]", planner);
 
   TopoReplanFSM topo_replan;

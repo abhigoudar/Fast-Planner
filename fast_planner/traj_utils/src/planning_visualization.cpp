@@ -340,7 +340,7 @@ void PlanningVisualization::drawPolynomialTraj(PolynomialTraj poly_traj, double 
 void PlanningVisualization::drawPrediction(ObjPrediction pred, double resolution,
                                            const Eigen::Vector4d& color, int id) {
   rclcpp::Time    time_now   = node->get_clock()->now();
-  assert(false && "drawPrediction traj utils");
+
   double       start_time = time_now.seconds() - ObjHistory::global_start_time_.seconds();
   const double range      = 5.6;
 

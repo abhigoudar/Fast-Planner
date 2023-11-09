@@ -41,89 +41,89 @@ const int BsplineOptimizer::NORMAL_PHASE =
     BsplineOptimizer::SMOOTHNESS | BsplineOptimizer::DISTANCE | BsplineOptimizer::FEASIBILITY;
 
 void BsplineOptimizer::setParam(rclcpp::Node::SharedPtr nh_) {
-  nh_->declare_parameter("optimization/lambda1", -1.0);
-  nh_->declare_parameter("optimization/lambda2", -1.0);
-  nh_->declare_parameter("optimization/lambda3", -1.0);
-  nh_->declare_parameter("optimization/lambda4", -1.0);
-  nh_->declare_parameter("optimization/lambda5", -1.0);
-  nh_->declare_parameter("optimization/lambda6", -1.0);
-  nh_->declare_parameter("optimization/lambda7", -1.0);
-  nh_->declare_parameter("optimization/lambda8", -1.0);
+  nh_->declare_parameter("optimization.lambda1", -1.0);
+  nh_->declare_parameter("optimization.lambda2", -1.0);
+  nh_->declare_parameter("optimization.lambda3", -1.0);
+  nh_->declare_parameter("optimization.lambda4", -1.0);
+  nh_->declare_parameter("optimization.lambda5", -1.0);
+  nh_->declare_parameter("optimization.lambda6", -1.0);
+  nh_->declare_parameter("optimization.lambda7", -1.0);
+  nh_->declare_parameter("optimization.lambda8", -1.0);
 
-  nh_->declare_parameter("optimization/dist0", -1.0);
-  nh_->declare_parameter("optimization/max_vel", -1.0);
-  nh_->declare_parameter("optimization/max_acc", -1.0);
-  nh_->declare_parameter("optimization/visib_min", -1.0);
-  nh_->declare_parameter("optimization/dlmin", -1.0);
-  nh_->declare_parameter("optimization/wnl", -1.0);
+  nh_->declare_parameter("optimization.dist0", -1.0);
+  nh_->declare_parameter("optimization.max_vel", -1.0);
+  nh_->declare_parameter("optimization.max_acc", -1.0);
+  nh_->declare_parameter("optimization.visib_min", -1.0);
+  nh_->declare_parameter("optimization.dlmin", -1.0);
+  nh_->declare_parameter("optimization.wnl", -1.0);
 
-  nh_->declare_parameter("optimization/max_iteration_num1", -1);
-  nh_->declare_parameter("optimization/max_iteration_num2", -1);
-  nh_->declare_parameter("optimization/max_iteration_num3", -1);
-  nh_->declare_parameter("optimization/max_iteration_num4", -1);
-  nh_->declare_parameter("optimization/max_iteration_time1", -1.0);
-  nh_->declare_parameter("optimization/max_iteration_time2", -1.0);
-  nh_->declare_parameter("optimization/max_iteration_time3", -1.0);
-  nh_->declare_parameter("optimization/max_iteration_time4", -1.0);
+  nh_->declare_parameter("optimization.max_iteration_num1", -1);
+  nh_->declare_parameter("optimization.max_iteration_num2", -1);
+  nh_->declare_parameter("optimization.max_iteration_num3", -1);
+  nh_->declare_parameter("optimization.max_iteration_num4", -1);
+  nh_->declare_parameter("optimization.max_iteration_time1", -1.0);
+  nh_->declare_parameter("optimization.max_iteration_time2", -1.0);
+  nh_->declare_parameter("optimization.max_iteration_time3", -1.0);
+  nh_->declare_parameter("optimization.max_iteration_time4", -1.0);
 
-  nh_->declare_parameter("optimization/algorithm1", -1);
-  nh_->declare_parameter("optimization/algorithm2", -1);
-  nh_->declare_parameter("optimization/order", -1);
+  nh_->declare_parameter("optimization.algorithm1", -1);
+  nh_->declare_parameter("optimization.algorithm2", -1);
+  nh_->declare_parameter("optimization.order", -1);
 
-  lambda1_ = nh_->get_parameter("optimization/lambda1").as_double();
-  lambda2_ = nh_->get_parameter("optimization/lambda2").as_double();
-  lambda3_ = nh_->get_parameter("optimization/lambda3").as_double();
-  lambda4_ = nh_->get_parameter("optimization/lambda4").as_double();
-  lambda5_ = nh_->get_parameter("optimization/lambda5").as_double();
-  lambda6_ = nh_->get_parameter("optimization/lambda6").as_double();
-  lambda7_ = nh_->get_parameter("optimization/lambda7").as_double();
-  lambda8_ = nh_->get_parameter("optimization/lambda8").as_double();
+  lambda1_ = nh_->get_parameter("optimization.lambda1").as_double();
+  lambda2_ = nh_->get_parameter("optimization.lambda2").as_double();
+  lambda3_ = nh_->get_parameter("optimization.lambda3").as_double();
+  lambda4_ = nh_->get_parameter("optimization.lambda4").as_double();
+  lambda5_ = nh_->get_parameter("optimization.lambda5").as_double();
+  lambda6_ = nh_->get_parameter("optimization.lambda6").as_double();
+  lambda7_ = nh_->get_parameter("optimization.lambda7").as_double();
+  lambda8_ = nh_->get_parameter("optimization.lambda8").as_double();
 
-  dist0_ = nh_->get_parameter("optimization/dist0").as_double();
-  max_vel_ = nh_->get_parameter("optimization/max_vel").as_double();
-  max_acc_ = nh_->get_parameter("optimization/max_acc").as_double();
-  visib_min_ = nh_->get_parameter("optimization/visib_min").as_double();
-  dlmin_ = nh_->get_parameter("optimization/dlmin").as_double();
-  wnl_ = nh_->get_parameter("optimization/wnl").as_double();
+  dist0_ = nh_->get_parameter("optimization.dist0").as_double();
+  max_vel_ = nh_->get_parameter("optimization.max_vel").as_double();
+  max_acc_ = nh_->get_parameter("optimization.max_acc").as_double();
+  visib_min_ = nh_->get_parameter("optimization.visib_min").as_double();
+  dlmin_ = nh_->get_parameter("optimization.dlmin").as_double();
+  wnl_ = nh_->get_parameter("optimization.wnl").as_double();
 
-  max_iteration_num_[0] = nh_->get_parameter("optimization/max_iteration_num1").as_int();
-  max_iteration_num_[1] = nh_->get_parameter("optimization/max_iteration_num2").as_int();
-  max_iteration_num_[2] = nh_->get_parameter("optimization/max_iteration_num3").as_int();
-  max_iteration_num_[3] = nh_->get_parameter("optimization/max_iteration_num4").as_int();
-  max_iteration_time_[0] = nh_->get_parameter("optimization/max_iteration_time1").as_double();
-  max_iteration_time_[1] = nh_->get_parameter("optimization/max_iteration_time2").as_double();
-  max_iteration_time_[2] = nh_->get_parameter("optimization/max_iteration_time3").as_double();
-  max_iteration_time_[3] = nh_->get_parameter("optimization/max_iteration_time4").as_double();
+  max_iteration_num_[0] = nh_->get_parameter("optimization.max_iteration_num1").as_int();
+  max_iteration_num_[1] = nh_->get_parameter("optimization.max_iteration_num2").as_int();
+  max_iteration_num_[2] = nh_->get_parameter("optimization.max_iteration_num3").as_int();
+  max_iteration_num_[3] = nh_->get_parameter("optimization.max_iteration_num4").as_int();
+  max_iteration_time_[0] = nh_->get_parameter("optimization.max_iteration_time1").as_double();
+  max_iteration_time_[1] = nh_->get_parameter("optimization.max_iteration_time2").as_double();
+  max_iteration_time_[2] = nh_->get_parameter("optimization.max_iteration_time3").as_double();
+  max_iteration_time_[3] = nh_->get_parameter("optimization.max_iteration_time4").as_double();
 
-  algorithm1_ = nh_->get_parameter("optimization/algorithm1").as_int();
-  algorithm2_ = nh_->get_parameter("optimization/algorithm2").as_int();
-  order_ = nh_->get_parameter("optimization/order").as_int();
+  algorithm1_ = nh_->get_parameter("optimization.algorithm1").as_int();
+  algorithm2_ = nh_->get_parameter("optimization.algorithm2").as_int();
+  order_ = nh_->get_parameter("optimization.order").as_int();
   RCLCPP_INFO_STREAM(nh_->get_logger(), "Bspline opt parameters:" <<
-    " optimization/lambda1:" << lambda1_ << "\n" <<
-    " optimization/lambda2:" << lambda2_ << "\n" <<
-    " optimization/lambda3:" << lambda3_ << "\n" <<
-    " optimization/lambda4:" << lambda4_ << "\n" <<
-    " optimization/lambda5:" << lambda5_ << "\n" <<
-    " optimization/lambda6:" << lambda6_ << "\n" <<
-    " optimization/lambda7:" << lambda7_ << "\n" <<
-    " optimization/lambda8:" << lambda8_ << "\n" <<
-    " optimization/dist0:" << dist0_ << "\n" << 
-    " optimization/max_vel:" << max_vel_ << "\n" <<
-    " optimization/max_acc:" << max_acc_ << "\n" <<
-    " optimization/visib_min:" << visib_min_ << "\n" <<
-    " optimization/dlmin_:" << dlmin_ << "\n" <<
-    " optimization/wnl_:" << wnl_ << "\n" <<
-    " optimization/max_iteration_num1:" << max_iteration_num_[0] << "\n" <<
-    " optimization/max_iteration_num2:" << max_iteration_num_[1] << "\n" <<
-    " optimization/max_iteration_num3:" << max_iteration_num_[2] << "\n" <<
-    " optimization/max_iteration_num4:" << max_iteration_num_[3] << "\n" <<
-    " optimization/max_iteration_time1:" << max_iteration_time_[0] << "\n" <<
-    " optimization/max_iteration_time2:" << max_iteration_time_[1] << "\n" <<
-    " optimization/max_iteration_time3:" << max_iteration_time_[2] << "\n" <<
-    " optimization/max_iteration_time4:" << max_iteration_time_[3] << "\n" <<
-    " optimization/algorithm1:" << algorithm1_ << "\n" <<
-    " optimization/algorithm2:" << algorithm2_ << "\n" <<
-    " optimization/order:" << order_);
+    " optimization.lambda1: " << lambda1_ << "\n" <<
+    " optimization.lambda2: " << lambda2_ << "\n" <<
+    " optimization.lambda3: " << lambda3_ << "\n" <<
+    " optimization.lambda4: " << lambda4_ << "\n" <<
+    " optimization.lambda5: " << lambda5_ << "\n" <<
+    " optimization.lambda6: " << lambda6_ << "\n" <<
+    " optimization.lambda7: " << lambda7_ << "\n" <<
+    " optimization.lambda8: " << lambda8_ << "\n" <<
+    " optimization.dist0: " << dist0_ << "\n" << 
+    " optimization.max_vel: " << max_vel_ << "\n" <<
+    " optimization.max_acc: " << max_acc_ << "\n" <<
+    " optimization.visib_min: " << visib_min_ << "\n" <<
+    " optimization.dlmin_: " << dlmin_ << "\n" <<
+    " optimization.wnl_: " << wnl_ << "\n" <<
+    " optimization.max_iteration_num1: " << max_iteration_num_[0] << "\n" <<
+    " optimization.max_iteration_num2: " << max_iteration_num_[1] << "\n" <<
+    " optimization.max_iteration_num3: " << max_iteration_num_[2] << "\n" <<
+    " optimization.max_iteration_num4: " << max_iteration_num_[3] << "\n" <<
+    " optimization.max_iteration_time1: " << max_iteration_time_[0] << "\n" <<
+    " optimization.max_iteration_time2: " << max_iteration_time_[1] << "\n" <<
+    " optimization.max_iteration_time3: " << max_iteration_time_[2] << "\n" <<
+    " optimization.max_iteration_time4: " << max_iteration_time_[3] << "\n" <<
+    " optimization.algorithm1: " << algorithm1_ << "\n" <<
+    " optimization.algorithm2: " << algorithm2_ << "\n" <<
+    " optimization.order: " << order_);
 }
 
 void BsplineOptimizer::setEnvironment(const EDTEnvironment::Ptr& env) {

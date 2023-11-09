@@ -1,19 +1,25 @@
 cmake_minimum_required(VERSION 3.5)
 project(plan_manage)
 
-# Default to C99
-if(NOT CMAKE_C_STANDARD)
-  set(CMAKE_C_STANDARD 99)
-endif()
+# # Default to C99
+# if(NOT CMAKE_C_STANDARD)
+#   set(CMAKE_C_STANDARD 99)
+# endif()
 
-# Default to C++14
-if(NOT CMAKE_CXX_STANDARD)
-  set(CMAKE_CXX_STANDARD 17)
-endif()
+# # Default to C++14
+# if(NOT CMAKE_CXX_STANDARD)
+#   set(CMAKE_CXX_STANDARD 17)
+# endif()
 
-if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-  add_compile_options(-Wall -Wextra -Wpedantic)
-endif()
+# if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+#   add_compile_options(-Wall -Wextra -Wpedantic)
+# endif()
+
+
+set(CMAKE_BUILD_TYPE "Release")
+set(CMAKE_CXX_FLAGS "-std=c++14")
+set(CMAKE_CXX_FLAGS_RELEASE "-O3 -Wall -g")
+
 
 find_package(ament_cmake REQUIRED)
 find_package(path_searching REQUIRED)
@@ -64,9 +70,7 @@ rosidl_target_interfaces(fast_planner_node ${PROJECT_NAME} "rosidl_typesupport_c
 # add_dependencies(traj_server ${${PROJECT_NAME}_EXPORTED_TARGETS})
 
 install(TARGETS fast_planner_node
-    ARCHIVE DESTINATION lib
-    LIBRARY DESTINATION lib
-    RUNTIME DESTINATION bin
+   RUNTIME DESTINATION lib/${PROJECT_NAME}
 )
 
 # install(TARGETS traj_server
@@ -74,6 +78,16 @@ install(TARGETS fast_planner_node
 #     LIBRARY DESTINATION lib
 #     RUNTIME DESTINATION bin
 # )
+
+install(
+  DIRECTORY config
+  DESTINATION share/${PROJECT_NAME}
+)
+
+install(
+  DIRECTORY launch
+  DESTINATION share/${PROJECT_NAME}
+)
 
 ament_export_dependencies(${DEPENDENCIES})
 ament_export_libraries(plan_manage)

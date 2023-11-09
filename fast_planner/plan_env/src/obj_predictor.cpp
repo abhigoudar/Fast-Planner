@@ -72,18 +72,18 @@ ObjPredictor::~ObjPredictor() {
 
 void ObjPredictor::init() {
   /* get param */
-  node_handle_->declare_parameter("prediction/obj_num", 5);
-  node_handle_->declare_parameter("prediction/lambda", 1.0);
-  node_handle_->declare_parameter("prediction/predict_rate", 1.0);
+  node_handle_->declare_parameter("prediction.obj_num", 5);
+  node_handle_->declare_parameter("prediction.lambda", 1.0);
+  node_handle_->declare_parameter("prediction.predict_rate", 1.0);
 
-  obj_num_ = node_handle_->get_parameter("prediction/obj_num").as_int();
-  lambda_ = node_handle_->get_parameter("prediction/lambda").as_double();
-  predict_rate_ = node_handle_->get_parameter("prediction/predict_rate").as_double();
+  obj_num_ = node_handle_->get_parameter("prediction.obj_num").as_int();
+  lambda_ = node_handle_->get_parameter("prediction.lambda").as_double();
+  predict_rate_ = node_handle_->get_parameter("prediction.predict_rate").as_double();
 
   RCLCPP_INFO_STREAM(node_handle_->get_logger(), " obj_predictor ROS Parameters:" <<
-    " prediction/obj_num:" << obj_num_ << "\n" <<
-    " prediction/lambda:" << lambda_ << "\n" <<
-    " prediction/predict_rate:" << predict_rate_);
+    " prediction.obj_num:" << obj_num_ << "\n" <<
+    " prediction.lambda:" << lambda_ << "\n" <<
+    " prediction.predict_rate:" << predict_rate_);
 
   predict_trajs_.reset(new vector<PolynomialPrediction>);
   predict_trajs_->resize(obj_num_);

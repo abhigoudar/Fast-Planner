@@ -203,23 +203,23 @@ int Astar::search(Eigen::Vector3d start_pt, Eigen::Vector3d end_pt, bool dynamic
 }
 
 void Astar::setParam(const rclcpp::Node::SharedPtr nh) {
-  nh->declare_parameter("astar/resolution_astar", -1.0);
-  nh->declare_parameter("astar/time_resolution", -1.0);
-  nh->declare_parameter("astar/lambda_heu", -1.0);
-  nh->declare_parameter("astar/margin", -1.0);
-  nh->declare_parameter("astar/allocate_num", -1);
+  nh->declare_parameter("astar.resolution_astar", -1.0);
+  nh->declare_parameter("astar.time_resolution", -1.0);
+  nh->declare_parameter("astar.lambda_heu", -1.0);
+  nh->declare_parameter("astar.margin", -1.0);
+  nh->declare_parameter("astar.allocate_num", -1);
 
-  resolution_ = nh->get_parameter("astar/resolution_astar").as_double();
-  time_resolution_ = nh->get_parameter("astar/time_resolution").as_double();
-  lambda_heu_ = nh->get_parameter("astar/lambda_heu").as_double();
-  margin_ = nh->get_parameter("astar/margin").as_double();
-  allocate_num_ = nh->get_parameter("astar/allocate_num").as_int();
+  resolution_ = nh->get_parameter("astar.resolution_astar").as_double();
+  time_resolution_ = nh->get_parameter("astar.time_resolution").as_double();
+  lambda_heu_ = nh->get_parameter("astar.lambda_heu").as_double();
+  margin_ = nh->get_parameter("astar.margin").as_double();
+  allocate_num_ = nh->get_parameter("astar.allocate_num").as_int();
   RCLCPP_INFO_STREAM(nh->get_logger(), " astar ROS parmeters:" <<
-    " astar/resolution_astar:" << resolution_ << "\n" <<
-    " astar/time_resolution:" << time_resolution_ << "\n" <<
-    " astar/lambda_heu:" << lambda_heu_ << "\n" <<
-    " astar/margin:" << margin_ << "\n" <<
-    " astar/allocate_num:" << allocate_num_);
+    " astar.resolution_astar: " << resolution_ << "\n" <<
+    " astar.time_resolution: " << time_resolution_ << "\n" <<
+    " astar.lambda_heu: " << lambda_heu_ << "\n" <<
+    " astar.margin: " << margin_ << "\n" <<
+    " astar.allocate_num: " << allocate_num_);
 
   tie_breaker_ = 1.0 + 1.0 / 10000;
 

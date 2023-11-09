@@ -70,42 +70,42 @@ int main(int argc, char** argv) {
     "dynamic_obj", rclcpp::NodeOptions());
 
   /* ---------- initialize ---------- */
-  ros_node->declare_parameter("obj_generator/obj_num", 10);
-  ros_node->declare_parameter("obj_generator/xy_size", 15.0);
-  ros_node->declare_parameter("obj_generator/h_size", 5.0);
-  ros_node->declare_parameter("obj_generator/vel", 5.0);
-  ros_node->declare_parameter("obj_generator/yaw_dot", 5.0);
-  ros_node->declare_parameter("obj_generator/acc_r1", 4.0);
-  ros_node->declare_parameter("obj_generator/acc_r2", 6.0);
-  ros_node->declare_parameter("obj_generator/acc_z", 3.0);
-  ros_node->declare_parameter("obj_generator/scale1", 1.5);
-  ros_node->declare_parameter("obj_generator/scale2", 2.5);
-  ros_node->declare_parameter("obj_generator/interval", 2.5);
+  ros_node->declare_parameter("obj_generator.obj_num", 10);
+  ros_node->declare_parameter("obj_generator.xy_size", 15.0);
+  ros_node->declare_parameter("obj_generator.h_size", 5.0);
+  ros_node->declare_parameter("obj_generator.vel", 5.0);
+  ros_node->declare_parameter("obj_generator.yaw_dot", 5.0);
+  ros_node->declare_parameter("obj_generator.acc_r1", 4.0);
+  ros_node->declare_parameter("obj_generator.acc_r2", 6.0);
+  ros_node->declare_parameter("obj_generator.acc_z", 3.0);
+  ros_node->declare_parameter("obj_generator.scale1", 1.5);
+  ros_node->declare_parameter("obj_generator.scale2", 2.5);
+  ros_node->declare_parameter("obj_generator.interval", 2.5);
 
-  obj_num = ros_node->get_parameter("obj_generator/obj_num").as_int();
-  _xy_size = ros_node->get_parameter("obj_generator/xy_size").as_double();
-  _h_size = ros_node->get_parameter("obj_generator/h_size").as_double();
-  _vel = ros_node->get_parameter("obj_generator/vel").as_double();
-  _yaw_dot = ros_node->get_parameter("obj_generator/yaw_dot").as_double();
-  _acc_r1 = ros_node->get_parameter("obj_generator/acc_r1").as_double();
-  _acc_r2 = ros_node->get_parameter("obj_generator/acc_r2").as_double();
-  _acc_z =  ros_node->get_parameter("obj_generator/acc_z").as_double();
-  _scale1 = ros_node->get_parameter("obj_generator/scale1").as_double();
-  _scale2 = ros_node->get_parameter("obj_generator/scale2").as_double();
-  _interval = ros_node->get_parameter("obj_generator/interval").as_double();
+  obj_num = ros_node->get_parameter("obj_generator.obj_num").as_int();
+  _xy_size = ros_node->get_parameter("obj_generator.xy_size").as_double();
+  _h_size = ros_node->get_parameter("obj_generator.h_size").as_double();
+  _vel = ros_node->get_parameter("obj_generator.vel").as_double();
+  _yaw_dot = ros_node->get_parameter("obj_generator.yaw_dot").as_double();
+  _acc_r1 = ros_node->get_parameter("obj_generator.acc_r1").as_double();
+  _acc_r2 = ros_node->get_parameter("obj_generator.acc_r2").as_double();
+  _acc_z =  ros_node->get_parameter("obj_generator.acc_z").as_double();
+  _scale1 = ros_node->get_parameter("obj_generator.scale1").as_double();
+  _scale2 = ros_node->get_parameter("obj_generator.scale2").as_double();
+  _interval = ros_node->get_parameter("obj_generator.interval").as_double();
 
   RCLCPP_INFO_STREAM(ros_node->get_logger(), " obj generator ROS parameters:" <<
-    " obj_generator/obj_num: " << obj_num << "\n" <<
-    " obj_generator/xy_size: " << _xy_size  << "\n" <<
-    " obj_generator/h_size: " << _h_size << "\n" <<
-    " obj_generator/vel: " << _vel << "\n" <<
-    " obj_generator/yaw_dot: " << _yaw_dot << "\n" <<
-    " obj_generator/acc_r1: " << _acc_r1 << "\n" <<
-    " obj_generator/acc_r2: " << _acc_r2 << "\n" <<
-    " obj_generator/acc_z: " << _acc_z << "\n" <<
-    " obj_generator/scale1: " << _scale1 << "\n" <<
-    " obj_generator/scale2: " << _scale2 << "\n" <<
-    " obj_generator/interval: " << _interval);
+    " obj_generator.obj_num: " << obj_num << "\n" <<
+    " obj_generator.xy_size: " << _xy_size  << "\n" <<
+    " obj_generator.h_size: " << _h_size << "\n" <<
+    " obj_generator.vel: " << _vel << "\n" <<
+    " obj_generator.yaw_dot: " << _yaw_dot << "\n" <<
+    " obj_generator.acc_r1: " << _acc_r1 << "\n" <<
+    " obj_generator.acc_r2: " << _acc_r2 << "\n" <<
+    " obj_generator.acc_z: " << _acc_z << "\n" <<
+    " obj_generator.scale1: " << _scale1 << "\n" <<
+    " obj_generator.scale2: " << _scale2 << "\n" <<
+    " obj_generator.interval: " << _interval);
 
   obj_pub = ros_node->create_publisher<visualization_msgs::msg::Marker>
     ("/dynamic/obj", rclcpp::SystemDefaultsQoS());

@@ -37,40 +37,40 @@ void TopoReplanFSM::init(const rclcpp::Node::SharedPtr nh) {
   collide_     = false;
 
   /*  fsm param  */
-  nh->declare_parameter("fsm/flight_type", -1);
-  nh->declare_parameter("fsm/thresh_replan", -1.0);
-  nh->declare_parameter("fsm/thresh_no_replan", -1.0);
-  nh->declare_parameter("fsm/waypoint_num", -1);
-  nh->declare_parameter("fsm/act_map", false);
+  nh->declare_parameter("fsm.flight_type", -1);
+  nh->declare_parameter("fsm.thresh_replan", -1.0);
+  nh->declare_parameter("fsm.thresh_no_replan", -1.0);
+  nh->declare_parameter("fsm.waypoint_num", -1);
+  nh->declare_parameter("fsm.act_map", false);
   //
   for (int i = 0; i < waypoint_num_; i++) {
-    nh->declare_parameter("fsm/waypoint" + to_string(i) + "_x", -1.0);
-    nh->declare_parameter("fsm/waypoint" + to_string(i) + "_y", -1.0);
-    nh->declare_parameter("fsm/waypoint" + to_string(i) + "_z", -1.0);
+    nh->declare_parameter("fsm.waypoint" + to_string(i) + "_x", -1.0);
+    nh->declare_parameter("fsm.waypoint" + to_string(i) + "_y", -1.0);
+    nh->declare_parameter("fsm.waypoint" + to_string(i) + "_z", -1.0);
   }
 
-  target_type_ = nh->get_parameter("fsm/flight_type").as_int();
-  replan_time_threshold_ = nh->get_parameter("fsm/thresh_replan").as_double();
-  replan_distance_threshold_ = nh->get_parameter("fsm/thresh_no_replan").as_double();
-  waypoint_num_ = nh->get_parameter("fsm/waypoint_num").as_int();
-  act_map_ = nh->get_parameter("fsm/act_map").as_bool();
+  target_type_ = nh->get_parameter("fsm.flight_type").as_int();
+  replan_time_threshold_ = nh->get_parameter("fsm.thresh_replan").as_double();
+  replan_distance_threshold_ = nh->get_parameter("fsm.thresh_no_replan").as_double();
+  waypoint_num_ = nh->get_parameter("fsm.waypoint_num").as_int();
+  act_map_ = nh->get_parameter("fsm.act_map").as_bool();
   //
   for (int i = 0; i < waypoint_num_; i++) {
-    waypoints_[i][0] = nh->get_parameter("fsm/waypoint" + to_string(i) + "_x").as_double();
-    waypoints_[i][1] = nh->get_parameter("fsm/waypoint" + to_string(i) + "_y").as_double();
-    waypoints_[i][2] = nh->get_parameter("fsm/waypoint" + to_string(i) + "_z").as_double();
+    waypoints_[i][0] = nh->get_parameter("fsm.waypoint" + to_string(i) + "_x").as_double();
+    waypoints_[i][1] = nh->get_parameter("fsm.waypoint" + to_string(i) + "_y").as_double();
+    waypoints_[i][2] = nh->get_parameter("fsm.waypoint" + to_string(i) + "_z").as_double();
   }
 
   RCLCPP_INFO_STREAM(nh->get_logger(), " kino_replan_fsm ROS parameters:" <<
-    " fsm/flight_type:" << target_type_ << "\n" <<
-    " fsm/thresh_replan:" << replan_time_threshold_ << "\n" <<
-    " fsm/thresh_no_replan:" << replan_distance_threshold_ << "\n" <<
-    " fsm/act_map" << act_map_ << "\n" <<
-    " fsm/waypoint_num:" << waypoint_num_);
+    " fsm.flight_type:" << target_type_ << "\n" <<
+    " fsm.thresh_replan:" << replan_time_threshold_ << "\n" <<
+    " fsm.thresh_no_replan:" << replan_distance_threshold_ << "\n" <<
+    " fsm.act_map" << act_map_ << "\n" <<
+    " fsm.waypoint_num:" << waypoint_num_);
   for (int i = 0; i < waypoint_num_; i++) {
-    RCLCPP_INFO_STREAM(nh->get_logger(), " fsm/waypoint" + to_string(i) + "_x:" <<  waypoints_[i][0]);
-    RCLCPP_INFO_STREAM(nh->get_logger(), " fsm/waypoint" + to_string(i) + "_y:" <<  waypoints_[i][1]);
-    RCLCPP_INFO_STREAM(nh->get_logger(), " fsm/waypoint" + to_string(i) + "_z:" <<  waypoints_[i][2]);
+    RCLCPP_INFO_STREAM(nh->get_logger(), " fsm.waypoint" + to_string(i) + "_x:" <<  waypoints_[i][0]);
+    RCLCPP_INFO_STREAM(nh->get_logger(), " fsm.waypoint" + to_string(i) + "_y:" <<  waypoints_[i][1]);
+    RCLCPP_INFO_STREAM(nh->get_logger(), " fsm.waypoint" + to_string(i) + "_z:" <<  waypoints_[i][2]);
   }
 
   /* initialize main modules */
