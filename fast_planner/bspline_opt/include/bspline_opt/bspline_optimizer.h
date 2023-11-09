@@ -51,19 +51,6 @@ public:
   BsplineOptimizer() {}
   ~BsplineOptimizer() {}
 
-  template<typename T>
-  T safeParamLoad(const std::string ns,
-    const std::string param, const T& def_value)
-  {
-    assert(false && "safeParamLoad bsplineoptimizer");
-    // if(config_[ns][param])
-    // {
-    //   return config_[ns][param].as<T>();
-    // }
-    // else
-    //   return def_value;
-  }
-
   /* main API */
   void            setEnvironment(const EDTEnvironment::Ptr& env);
   void            setParam(rclcpp::Node::SharedPtr nh);

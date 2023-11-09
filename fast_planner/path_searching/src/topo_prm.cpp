@@ -38,18 +38,46 @@ void TopologyPRM::init(const rclcpp::Node::SharedPtr nh_) {
   rand_pos_ = uniform_real_distribution<double>(-1.0, 1.0);
 
   // init parameter
-  // nh.param("topo_prm/sample_inflate_x", sample_inflate_(0), -1.0);
-  // nh.param("topo_prm/sample_inflate_y", sample_inflate_(1), -1.0);
-  // nh.param("topo_prm/sample_inflate_z", sample_inflate_(2), -1.0);
-  // nh.param("topo_prm/clearance", clearance_, -1.0);
-  // nh.param("topo_prm/short_cut_num", short_cut_num_, -1);
-  // nh.param("topo_prm/reserve_num", reserve_num_, -1);
-  // nh.param("topo_prm/ratio_to_short", ratio_to_short_, -1.0);
-  // nh.param("topo_prm/max_sample_num", max_sample_num_, -1);
-  // nh.param("topo_prm/max_sample_time", max_sample_time_, -1.0);
-  // nh.param("topo_prm/max_raw_path", max_raw_path_, -1);
-  // nh.param("topo_prm/max_raw_path2", max_raw_path2_, -1);
-  // nh.param("topo_prm/parallel_shortcut", parallel_shortcut_, false);
+  nh->declare_parameter("topo_prm/sample_inflate_x", -1.0);
+  nh->declare_parameter("topo_prm/sample_inflate_y", -1.0);
+  nh->declare_parameter("topo_prm/sample_inflate_z", -1.0);
+  nh->declare_parameter("topo_prm/clearance", -1.0);
+  nh->declare_parameter("topo_prm/short_cut_num", -1);
+  nh->declare_parameter("topo_prm/reserve_num", -1);
+  nh->declare_parameter("topo_prm/ratio_to_short", -1.0);
+  nh->declare_parameter("topo_prm/max_sample_num", -1);
+  nh->declare_parameter("topo_prm/max_sample_time", -1.0);
+  nh->declare_parameter("topo_prm/max_raw_path", -1);
+  nh->declare_parameter("topo_prm/max_raw_path2", -1);
+  nh->declare_parameter("topo_prm/parallel_shortcut", false);
+
+  sample_inflate_(0) = nh->get_parameter("topo_prm/sample_inflate_x").as_double();
+  sample_inflate_(1) = nh->get_parameter("topo_prm/sample_inflate_y").as_double();
+  sample_inflate_(2) = nh->get_parameter("topo_prm/sample_inflate_z").as_double();
+  clearance_ = nh->get_parameter("topo_prm/clearance").as_double();
+  short_cut_num_ = nh->get_parameter("topo_prm/short_cut_num").as_int();
+  reserve_num_ = nh->get_parameter("topo_prm/reserve_num").as_int();
+  ratio_to_short_ = nh->get_parameter("topo_prm/ratio_to_short").as_double();
+  max_sample_num_ = nh->get_parameter("topo_prm/max_sample_num").as_int();
+  max_sample_time_ = nh->get_parameter("topo_prm/max_sample_time").as_double();
+  max_raw_path_ = nh->get_parameter("topo_prm/max_raw_path").as_int();
+  max_raw_path2_ = nh->get_parameter("topo_prm/max_raw_path2").as_int();
+  parallel_shortcut_ = nh->get_parameter("topo_prm/parallel_shortcut").as_bool();
+
+  RCLCPP_INFO_STREAM(nh->get_logger(), " topo_prm ROS parameters" << 
+    " topo_prm/sample_inflate_x" << sample_inflate_(0) << "\n" <<
+    " topo_prm/sample_inflate_y" << sample_inflate_(1) << "\n" <<
+    " topo_prm/sample_inflate_z" << sample_inflate_(2) << "\n" <<
+    " topo_prm/clearance" << clearance_ << "\n" <<
+    " topo_prm/short_cut_num" << short_cut_num_ << "\n" <<
+    " topo_prm/reserve_num" << reserve_num_ << "\n" <<
+    " topo_prm/ratio_to_short" << ratio_to_short_ << "\n" <<
+    " topo_prm/max_sample_num" << max_sample_num_ << "\n" <<
+    " topo_prm/max_sample_time" << max_sample_time_ << "\n" <<
+    " topo_prm/max_raw_path" << max_raw_path_ << "\n" <<
+    " topo_prm/max_raw_path2" << max_raw_path2_ << "\n" <<
+    " topo_prm/parallel_shortcut" << parallel_shortcut_);
+
   resolution_ = edt_environment_->sdf_map_->getResolution();
   offset_ = Eigen::Vector3d(0.5, 0.5, 0.5) - edt_environment_->sdf_map_->getOrigin() / resolution_;
 

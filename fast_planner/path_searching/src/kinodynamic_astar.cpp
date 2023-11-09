@@ -330,24 +330,53 @@ int KinodynamicAstar::search(Eigen::Vector3d start_pt, Eigen::Vector3d start_v, 
 
 void KinodynamicAstar::setParam(const rclcpp::Node::SharedPtr nh)
 {
-  assert(false && " kinodynamic_astar setparam");
-  // nh.param("search/max_tau", max_tau_, -1.0);
-  // nh.param("search/init_max_tau", init_max_tau_, -1.0);
-  // nh.param("search/max_vel", max_vel_, -1.0);
-  // nh.param("search/max_acc", max_acc_, -1.0);
-  // nh.param("search/w_time", w_time_, -1.0);
-  // nh.param("search/horizon", horizon_, -1.0);
-  // nh.param("search/resolution_astar", resolution_, -1.0);
-  // nh.param("search/time_resolution", time_resolution_, -1.0);
-  // nh.param("search/lambda_heu", lambda_heu_, -1.0);
-  // nh.param("search/allocate_num", allocate_num_, -1);
-  // nh.param("search/check_num", check_num_, -1);
-  // nh.param("search/optimistic", optimistic_, true);
+  nh->declare_parameter("search/max_tau", -1.0);
+  nh->declare_parameter("search/init_max_tau", -1.0);
+  nh->declare_parameter("search/max_vel", -1.0);
+  nh->declare_parameter("search/max_acc",-1.0);
+  nh->declare_parameter("search/w_time", -1.0);
+  nh->declare_parameter("search/horizon", -1.0);
+  nh->declare_parameter("search/resolution_astar", -1.0);
+  nh->declare_parameter("search/time_resolution", -1.0);
+  nh->declare_parameter("search/lambda_heu", -1.0);
+  nh->declare_parameter("search/allocate_num", -1);
+  nh->declare_parameter("search/check_num", -1);
+  nh->declare_parameter("search/optimistic", true);
+
+  max_tau_ = nh->get_parameter("search/max_tau").as_double();
+  init_max_tau_ = nh->get_parameter("search/init_max_tau").as_double();
+  max_vel_ = nh->get_parameter("search/max_vel").as_double();
+  max_acc_ = nh->get_parameter("search/max_acc").as_double();
+  w_time_ = nh->get_parameter("search/w_time").as_double();
+  horizon_ = nh->get_parameter("search/horizon").as_double();
+  resolution_ = nh->get_parameter("search/resolution_astar").as_double();
+  time_resolution_ = nh->get_parameter("search/time_resolution").as_double();
+  lambda_heu_ = nh->get_parameter("search/lambda_heu").as_double();
+  allocate_num_ = nh->get_parameter("search/allocate_num").as_int();
+  check_num_ = nh->get_parameter("search/check_num").as_int();
+  optimistic_ = nh->get_parameter("search/optimistic").as_bool();
+
   tie_breaker_ = 1.0 + 1.0 / 10000;
 
   double vel_margin;
-  // nh.param("search/vel_margin", vel_margin, 0.0);
+  nh->declare_parameter("search/vel_margin", 0.0);
+  vel_margin = nh->get_parameter("search/vel_margin").as_double();
   max_vel_ += vel_margin;
+
+  RCLCPP_INFO_STREAM(nh->get_logger(), " kinodynamic astar ROS params:" <<
+    " search/max_tau:" <<  max_tau_ << "\n" <<
+    " search/init_max_tau:" <<  init_max_tau_ << "\n" <<
+    " search/max_vel:" << max_vel_ << "\n" <<
+    " search/max_acc:" << max_acc_ << "\n" <<
+    " search/w_time:" <<  w_time_ << "\n" <<
+    " search/horizon:" << horizon_ << "\n" <<
+    " search/resolution_astar:" << resolution_ << "\n" <<
+    " search/time_resolution:" << time_resolution_ << "\n" <<
+    " search/lambda_heu:" << lambda_heu_ << "\n" <<
+    " search/allocate_num:" <<  allocate_num_ << "\n" <<
+    " search/check_num:" << check_num_ << "\n" <<
+    " search/optimistic:" << optimistic_ << "\n" <<
+    " search/vel_margin:" << vel_margin);
 }
 
 void KinodynamicAstar::retrievePath(PathNodePtr end_node)

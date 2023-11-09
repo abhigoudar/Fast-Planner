@@ -42,15 +42,18 @@ int main(int argc, char** argv) {
   rclcpp::executors::SingleThreadedExecutor executor;
 
   int planner = 1;
-  assert(false && "fast planner node");
-  // node.param("planner_node/planner", planner, -1);
+  node->declare_parameter("planner_node/planner", -1);
+  planner = node->get_parameter("planner_node/planner").as_int();
+  RCLCPP_INFO(node->get_logger(), " Planner:[%d]", planner);
 
   TopoReplanFSM topo_replan;
   KinoReplanFSM kino_replan;
 
   if (planner == 1) {
+    RCLCPP_INFO(node->get_logger(), " Starting kinodynamic planner");
     kino_replan.init(node);
   } else if (planner == 2) {
+    RCLCPP_INFO(node->get_logger(), " Starting topological planner");
     topo_replan.init(node);
   }
 

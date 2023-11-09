@@ -38,21 +38,46 @@ FastPlannerManager::~FastPlannerManager() { std::cout << "des manager" << std::e
 void FastPlannerManager::initPlanModules(const rclcpp::Node::SharedPtr nh) {
   ros_node = nh;
   /* read algorithm parameters */
-
-  assert(false && "planner_manager.cpp");
-  // nh.param("manager/max_vel", pp_.max_vel_, -1.0);
-  // nh.param("manager/max_acc", pp_.max_acc_, -1.0);
-  // nh.param("manager/max_jerk", pp_.max_jerk_, -1.0);
-  // nh.param("manager/dynamic_environment", pp_.dynamic_, -1);
-  // nh.param("manager/clearance_threshold", pp_.clearance_, -1.0);
-  // nh.param("manager/local_segment_length", pp_.local_traj_len_, -1.0);
-  // nh.param("manager/control_points_distance", pp_.ctrl_pt_dist, -1.0);
-
   bool use_geometric_path, use_kinodynamic_path, use_topo_path, use_optimization, use_active_perception;
-  // nh.param("manager/use_geometric_path", use_geometric_path, false);
-  // nh.param("manager/use_kinodynamic_path", use_kinodynamic_path, false);
-  // nh.param("manager/use_topo_path", use_topo_path, false);
-  // nh.param("manager/use_optimization", use_optimization, false);
+
+  nh->declare_parameter("manager/max_vel", -1.0);
+  nh->declare_parameter("manager/max_acc", -1.0);
+  nh->declare_parameter("manager/max_jerk", -1.0);
+  nh->declare_parameter("manager/dynamic_environment", -1);
+  nh->declare_parameter("manager/clearance_threshold", -1.0);
+  nh->declare_parameter("manager/local_segment_length", -1.0);
+  nh->declare_parameter("manager/control_points_distance", -1.0);
+
+  nh->declare_parameter("manager/use_geometric_path", false);
+  nh->declare_parameter("manager/use_kinodynamic_path", false);
+  nh->declare_parameter("manager/use_topo_path", false);
+  nh->declare_parameter("manager/use_optimization", false);
+
+  pp_.max_vel_ = nh->get_parameter("manager/max_vel").as_double();
+  pp_.max_acc_ = nh->get_parameter("manager/max_acc").as_double();
+  pp_.max_jerk_ = nh->get_parameter("manager/max_jerk").as_double();
+  pp_.dynamic_ = nh->get_parameter("manager/dynamic_environment").as_int();
+  pp_.clearance_ = nh->get_parameter("manager/clearance_threshold").as_double();
+  pp_.local_traj_len_ = nh->get_parameter("manager/local_segment_length").as_double();
+  pp_.ctrl_pt_dist = nh->get_parameter("manager/control_points_distance").as_double();
+
+  use_geometric_path = nh->get_parameter("manager/use_geometric_path").as_bool();
+  use_kinodynamic_path = nh->get_parameter("manager/use_kinodynamic_path").as_bool();
+  use_topo_path = nh->get_parameter("manager/use_topo_path").as_bool();
+  use_optimization = nh->get_parameter("manager/use_optimization").as_bool();
+
+  RCLCPP_INFO_STREAM(nh->get_logger(), " planner_manager ROS parameters:" << 
+    " manager/max_vel" << pp_.max_vel_ << "\n" <<
+    " manager/max_acc" << pp_.max_acc_ << "\n" <<
+    " manager/max_jerk" << pp_.max_jerk_ << "\n" <<
+    " manager/dynamic_environment" << pp_.dynamic_ << "\n" <<
+    " manager/clearance_threshold" << pp_.clearance_ << "\n" <<
+    " manager/local_segment_length" << pp_.local_traj_len_ << "\n" <<
+    " manager/control_points_distance" << pp_.ctrl_pt_dist << "\n" <<
+    " manager/use_geometric_path" << use_geometric_path << "\n" <<
+    " manager/use_kinodynamic_path" << use_kinodynamic_path << "\n" <<
+    " manager/use_topo_path" << use_topo_path << "\n" <<
+    " manager/use_optimization" << use_optimization);
 
   local_data_.traj_id_ = 0;
   sdf_map_.reset(new SDFMap);

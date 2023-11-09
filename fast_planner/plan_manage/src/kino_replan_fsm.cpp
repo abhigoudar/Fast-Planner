@@ -35,18 +35,39 @@ void KinoReplanFSM::init(const rclcpp::Node::SharedPtr nh) {
   have_target_ = false;
   have_odom_   = false;
 
-  assert(false && "kino replan");
   /*  fsm param  */
-  // nh.param("fsm/flight_type", target_type_, -1);
-  // nh.param("fsm/thresh_replan", replan_thresh_, -1.0);
-  // nh.param("fsm/thresh_no_replan", no_replan_thresh_, -1.0);
+  nh->declare_parameter("fsm/flight_type", -1);
+  nh->declare_parameter("fsm/thresh_replan", -1.0);
+  nh->declare_parameter("fsm/thresh_no_replan", -1.0);
+  nh->declare_parameter("fsm/waypoint_num", -1);
+  //
+  for (int i = 0; i < waypoint_num_; i++) {
+    nh->declare_parameter("fsm/waypoint" + to_string(i) + "_x", -1.0);
+    nh->declare_parameter("fsm/waypoint" + to_string(i) + "_y", -1.0);
+    nh->declare_parameter("fsm/waypoint" + to_string(i) + "_z", -1.0);
+  }
 
-  // nh.param("fsm/waypoint_num", waypoint_num_, -1);
-  // for (int i = 0; i < waypoint_num_; i++) {
-  //   nh.param("fsm/waypoint" + to_string(i) + "_x", waypoints_[i][0], -1.0);
-  //   nh.param("fsm/waypoint" + to_string(i) + "_y", waypoints_[i][1], -1.0);
-  //   nh.param("fsm/waypoint" + to_string(i) + "_z", waypoints_[i][2], -1.0);
-  // }
+  target_type_ = nh->get_parameter("fsm/flight_type").as_int();
+  replan_thresh_ = nh->get_parameter("fsm/thresh_replan").as_double();
+  no_replan_thresh_ = nh->get_parameter("fsm/thresh_no_replan").as_double();
+  waypoint_num_ = nh->get_parameter("fsm/waypoint_num").as_int();
+  //
+  for (int i = 0; i < waypoint_num_; i++) {
+    waypoints_[i][0] = nh->get_parameter("fsm/waypoint" + to_string(i) + "_x").as_double();
+    waypoints_[i][1] = nh->get_parameter("fsm/waypoint" + to_string(i) + "_y").as_double();
+    waypoints_[i][2] = nh->get_parameter("fsm/waypoint" + to_string(i) + "_z").as_double();
+  }
+
+  RCLCPP_INFO_STREAM(nh->get_logger(), " kino_replan_fsm ROS parameters:" <<
+    " fsm/flight_type:" << target_type_ << "\n" <<
+    " fsm/thresh_replan:" << replan_thresh_ << "\n" <<
+    " fsm/thresh_no_replan:" << no_replan_thresh_ << "\n" <<
+    " fsm/waypoint_num:" << waypoint_num_);
+  for (int i = 0; i < waypoint_num_; i++) {
+    RCLCPP_INFO_STREAM(nh->get_logger(), " fsm/waypoint" + to_string(i) + "_x:" <<  waypoints_[i][0]);
+    RCLCPP_INFO_STREAM(nh->get_logger(), " fsm/waypoint" + to_string(i) + "_y:" <<  waypoints_[i][1]);
+    RCLCPP_INFO_STREAM(nh->get_logger(), " fsm/waypoint" + to_string(i) + "_z:" <<  waypoints_[i][2]);
+  }
 
   /* initialize main modules */
   planner_manager_ = std::make_unique<FastPlannerManager>();
