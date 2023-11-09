@@ -8,13 +8,9 @@
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 
-
-  <depend>rclcpp</depend>
-  <depend>visualization_msgs</depend>
   <depend>path_searching</depend>
   <depend>bspline</depend>
   <depend>poly_traj</depend>
-  <depend>cv_bridge</depend>
   <depend>bspline_opt</depend>
   <depend>traj_utils</depend>
 

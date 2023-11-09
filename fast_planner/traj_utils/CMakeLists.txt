@@ -15,21 +15,19 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
 find_package(ament_cmake REQUIRED)
-find_package(rclcpp REQUIRED)
-find_package(visualization_msgs REQUIRED)
 find_package(bspline REQUIRED)
 find_package(path_searching REQUIRED)
 find_package(poly_traj REQUIRED)
 find_package(plan_env REQUIRED)
 
 set(DEPENDENCIES
-  rclcpp
   bspline
   path_searching
   poly_traj
   plan_env
-  visualization_msgs
 )
 
 include_directories( 
@@ -37,7 +35,7 @@ include_directories(
     ${Eigen3_INCLUDE_DIRS} 
 )
 
-add_library( traj_utils
+add_library( traj_utils SHARED
     src/planning_visualization.cpp)
 ament_target_dependencies(traj_utils ${DEPENDENCIES})
 

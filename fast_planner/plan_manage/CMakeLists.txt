@@ -16,28 +16,22 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 endif()
 
 find_package(ament_cmake REQUIRED)
-find_package(rclcpp REQUIRED)
 find_package(path_searching REQUIRED)
 find_package(bspline REQUIRED)
-find_package(cv_bridge REQUIRED)
 find_package(bspline_opt REQUIRED)
 find_package(traj_utils REQUIRED)
 find_package(poly_traj)
-find_package(visualization_msgs REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
 
 find_package(NLopt REQUIRED)
 set(NLopt_INCLUDE_DIRS ${NLOPT_INCLUDE_DIR})
 
 set(DEPENDENCIES
-  rclcpp
   path_searching
   bspline
   bspline_opt
   traj_utils
   poly_traj
-  cv_bridge
-  visualization_msgs
 )
 # Generate messages in the 'msg' folder
 set(msg_files
@@ -81,7 +75,6 @@ install(TARGETS fast_planner_node
 #     RUNTIME DESTINATION bin
 # )
 
-ament_export_dependencies(eigen3_cmake_module)
 ament_export_dependencies(${DEPENDENCIES})
 ament_export_libraries(plan_manage)
 ament_export_include_directories(include)

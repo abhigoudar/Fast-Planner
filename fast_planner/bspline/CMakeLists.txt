@@ -15,6 +15,8 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(eigen3_cmake_module REQUIRED)
@@ -25,7 +27,7 @@ include_directories(
     ${Eigen3_INCLUDE_DIRS} 
 )
 
-add_library( bspline 
+add_library( bspline SHARED
     src/non_uniform_bspline.cpp 
 )
 

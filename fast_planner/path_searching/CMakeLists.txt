@@ -14,25 +14,15 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
 find_package(ament_cmake REQUIRED)
-find_package(rclcpp REQUIRED)
-find_package(std_msgs REQUIRED)
-find_package(visualization_msgs REQUIRED)
-find_package(cv_bridge REQUIRED)
 find_package(plan_env REQUIRED)
 
-find_package(eigen3_cmake_module REQUIRED)
-find_package(Eigen3)
 find_package(PCL REQUIRED)
 
 set(DEPENDENCIES
-    rclcpp
-    std_msgs
-    visualization_msgs
-    cv_bridge
-    eigen3_cmake_module
-    plan_env
-)
+    plan_env)
 
 include_directories( 
     include 
@@ -40,11 +30,10 @@ include_directories(
     ${PCL_INCLUDE_DIRS}
 )
 
-add_library( path_searching 
+add_library( path_searching SHARED
     src/kinodynamic_astar.cpp 
     src/astar.cpp
-    src/topo_prm.cpp
-    )
+    src/topo_prm.cpp)
 ament_target_dependencies(path_searching ${DEPENDENCIES})
 
 install(TARGETS path_searching

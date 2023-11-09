@@ -16,20 +16,16 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
 find_package(ament_cmake REQUIRED)
-find_package(rclcpp REQUIRED)
 find_package(plan_env REQUIRED)
-find_package(eigen3_cmake_module REQUIRED)
-find_package(Eigen3 REQUIRED)
-# find_package(PkgConfig REQUIRED)
-# pkg_check_modules(nlopt REQUIRED)
 
 find_package(NLopt REQUIRED)
 set(NLopt_INCLUDE_DIRS ${NLOPT_INCLUDE_DIR})
 
 set(
     DEPENDENCIES
-    rclcpp
     plan_env
 )
 
@@ -38,7 +34,7 @@ include_directories(
     ${Eigen3_INCLUDE_DIRS}
 )
 
-add_library(bspline_opt 
+add_library(bspline_opt SHARED
     src/bspline_optimizer.cpp
     )
 target_link_libraries(bspline_opt ${NLOPT_LIBRARIES})
@@ -55,7 +51,6 @@ install(
   DESTINATION include/
 )
 
-ament_export_dependencies(eigen3_cmake_module)
 ament_export_dependencies(${DEPENDENCIES})
 ament_export_libraries(bspline_opt)
 ament_export_include_directories(include)

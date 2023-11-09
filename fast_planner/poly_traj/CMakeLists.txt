@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 3.5)
 project(poly_traj)
 
-
 # Default to C99
 if(NOT CMAKE_C_STANDARD)
   set(CMAKE_C_STANDARD 99)
@@ -15,6 +14,8 @@ endif()
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
+
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 find_package(eigen3_cmake_module REQUIRED)
 find_package(Eigen3)
@@ -35,7 +36,7 @@ include_directories(
   ${EIGEN3_INCLUDE_DIR}
 )
 
-add_library( poly_traj 
+add_library( poly_traj SHARED
     src/polynomial_traj.cpp 
     )
 ament_target_dependencies(poly_traj ${DEPENDENCIES})
