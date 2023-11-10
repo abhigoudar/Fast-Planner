@@ -4,6 +4,8 @@ ADD_COMPILE_OPTIONS(-std=c++11 )
 ADD_COMPILE_OPTIONS(-std=c++14 )
 find_package(Eigen3 REQUIRED)
 find_package(PCL 1.7 REQUIRED)
+find_package(NLopt REQUIRED)
+set(NLopt_INCLUDE_DIRS ${NLOPT_INCLUDE_DIR})
 
 find_package(catkin REQUIRED COMPONENTS
   roscpp
@@ -12,14 +14,13 @@ find_package(catkin REQUIRED COMPONENTS
   visualization_msgs
   cv_bridge
   plan_env
-  nlopt
 )
 
 
 catkin_package(
  INCLUDE_DIRS include
  LIBRARIES bspline_opt
- CATKIN_DEPENDS plan_env nlopt
+ CATKIN_DEPENDS plan_env
 #  DEPENDS system_lib
 )
 
@@ -29,6 +30,7 @@ include_directories(
     ${catkin_INCLUDE_DIRS}
     ${Eigen3_INCLUDE_DIRS} 
     ${PCL_INCLUDE_DIRS}
+    ${NLOPT_INCLUDE_DIR}
 )
 
 
@@ -39,6 +41,7 @@ add_library(bspline_opt
     )
 target_link_libraries( bspline_opt
     ${catkin_LIBRARIES}
+    ${NLOPT_LIBRARIES}
     )  
 
 install(
