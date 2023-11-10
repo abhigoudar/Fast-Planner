@@ -40,65 +40,72 @@ const int BsplineOptimizer::GUIDE_PHASE = BsplineOptimizer::SMOOTHNESS | Bspline
 const int BsplineOptimizer::NORMAL_PHASE =
     BsplineOptimizer::SMOOTHNESS | BsplineOptimizer::DISTANCE | BsplineOptimizer::FEASIBILITY;
 
+
+
 void BsplineOptimizer::setParam(rclcpp::Node::SharedPtr nh_) {
-  nh_->declare_parameter("optimization.lambda1", -1.0);
-  nh_->declare_parameter("optimization.lambda2", -1.0);
-  nh_->declare_parameter("optimization.lambda3", -1.0);
-  nh_->declare_parameter("optimization.lambda4", -1.0);
-  nh_->declare_parameter("optimization.lambda5", -1.0);
-  nh_->declare_parameter("optimization.lambda6", -1.0);
-  nh_->declare_parameter("optimization.lambda7", -1.0);
-  nh_->declare_parameter("optimization.lambda8", -1.0);
+  //
+  ros_node_ = nh_;
+  //
+  declareParameterSafe<double>("optimization.lambda1", -1.0);
+  declareParameterSafe<double>("optimization.lambda2", -1.0);
+  declareParameterSafe<double>("optimization.lambda3", -1.0);
+  declareParameterSafe<double>("optimization.lambda4", -1.0);
+  declareParameterSafe<double>("optimization.lambda5", -1.0);
+  declareParameterSafe<double>("optimization.lambda6", -1.0);
+  declareParameterSafe<double>("optimization.lambda7", -1.0);
+  declareParameterSafe<double>("optimization.lambda8", -1.0);
+  //
+  declareParameterSafe<double>("optimization.dist0", -1.0);
+  declareParameterSafe<double>("optimization.max_vel", -1.0);
+  declareParameterSafe<double>("optimization.max_acc", -1.0);
+  declareParameterSafe<double>("optimization.visib_min", -1.0);
+  declareParameterSafe<double>("optimization.dlmin", -1.0);
+  declareParameterSafe<double>("optimization.wnl", -1.0);
+  //
+  declareParameterSafe<int>("optimization.max_iteration_num1", -1);
+  declareParameterSafe<int>("optimization.max_iteration_num2", -1);
+  declareParameterSafe<int>("optimization.max_iteration_num3", -1);
+  declareParameterSafe<int>("optimization.max_iteration_num4", -1);
+  //
+  declareParameterSafe<double>("optimization.max_iteration_time1", -1.0);
+  declareParameterSafe<double>("optimization.max_iteration_time2", -1.0);
+  declareParameterSafe<double>("optimization.max_iteration_time3", -1.0);
+  declareParameterSafe<double>("optimization.max_iteration_time4", -1.0);
+  //
+  declareParameterSafe<int>("optimization.algorithm1", -1);
+  declareParameterSafe<int>("optimization.algorithm2", -1);
+  declareParameterSafe<int>("optimization.order", -1);
 
-  nh_->declare_parameter("optimization.dist0", -1.0);
-  nh_->declare_parameter("optimization.max_vel", -1.0);
-  nh_->declare_parameter("optimization.max_acc", -1.0);
-  nh_->declare_parameter("optimization.visib_min", -1.0);
-  nh_->declare_parameter("optimization.dlmin", -1.0);
-  nh_->declare_parameter("optimization.wnl", -1.0);
+  lambda1_ = ros_node_->get_parameter("optimization.lambda1").as_double();
+  lambda2_ = ros_node_->get_parameter("optimization.lambda2").as_double();
+  lambda3_ = ros_node_->get_parameter("optimization.lambda3").as_double();
+  lambda4_ = ros_node_->get_parameter("optimization.lambda4").as_double();
+  lambda5_ = ros_node_->get_parameter("optimization.lambda5").as_double();
+  lambda6_ = ros_node_->get_parameter("optimization.lambda6").as_double();
+  lambda7_ = ros_node_->get_parameter("optimization.lambda7").as_double();
+  lambda8_ = ros_node_->get_parameter("optimization.lambda8").as_double();
 
-  nh_->declare_parameter("optimization.max_iteration_num1", -1);
-  nh_->declare_parameter("optimization.max_iteration_num2", -1);
-  nh_->declare_parameter("optimization.max_iteration_num3", -1);
-  nh_->declare_parameter("optimization.max_iteration_num4", -1);
-  nh_->declare_parameter("optimization.max_iteration_time1", -1.0);
-  nh_->declare_parameter("optimization.max_iteration_time2", -1.0);
-  nh_->declare_parameter("optimization.max_iteration_time3", -1.0);
-  nh_->declare_parameter("optimization.max_iteration_time4", -1.0);
+  dist0_ = ros_node_->get_parameter("optimization.dist0").as_double();
+  max_vel_ = ros_node_->get_parameter("optimization.max_vel").as_double();
+  max_acc_ = ros_node_->get_parameter("optimization.max_acc").as_double();
+  visib_min_ = ros_node_->get_parameter("optimization.visib_min").as_double();
+  dlmin_ = ros_node_->get_parameter("optimization.dlmin").as_double();
+  wnl_ = ros_node_->get_parameter("optimization.wnl").as_double();
 
-  nh_->declare_parameter("optimization.algorithm1", -1);
-  nh_->declare_parameter("optimization.algorithm2", -1);
-  nh_->declare_parameter("optimization.order", -1);
+  max_iteration_num_[0] = ros_node_->get_parameter("optimization.max_iteration_num1").as_int();
+  max_iteration_num_[1] = ros_node_->get_parameter("optimization.max_iteration_num2").as_int();
+  max_iteration_num_[2] = ros_node_->get_parameter("optimization.max_iteration_num3").as_int();
+  max_iteration_num_[3] = ros_node_->get_parameter("optimization.max_iteration_num4").as_int();
+  //
+  max_iteration_time_[0] = ros_node_->get_parameter("optimization.max_iteration_time1").as_double();
+  max_iteration_time_[1] = ros_node_->get_parameter("optimization.max_iteration_time2").as_double();
+  max_iteration_time_[2] = ros_node_->get_parameter("optimization.max_iteration_time3").as_double();
+  max_iteration_time_[3] = ros_node_->get_parameter("optimization.max_iteration_time4").as_double();
 
-  lambda1_ = nh_->get_parameter("optimization.lambda1").as_double();
-  lambda2_ = nh_->get_parameter("optimization.lambda2").as_double();
-  lambda3_ = nh_->get_parameter("optimization.lambda3").as_double();
-  lambda4_ = nh_->get_parameter("optimization.lambda4").as_double();
-  lambda5_ = nh_->get_parameter("optimization.lambda5").as_double();
-  lambda6_ = nh_->get_parameter("optimization.lambda6").as_double();
-  lambda7_ = nh_->get_parameter("optimization.lambda7").as_double();
-  lambda8_ = nh_->get_parameter("optimization.lambda8").as_double();
-
-  dist0_ = nh_->get_parameter("optimization.dist0").as_double();
-  max_vel_ = nh_->get_parameter("optimization.max_vel").as_double();
-  max_acc_ = nh_->get_parameter("optimization.max_acc").as_double();
-  visib_min_ = nh_->get_parameter("optimization.visib_min").as_double();
-  dlmin_ = nh_->get_parameter("optimization.dlmin").as_double();
-  wnl_ = nh_->get_parameter("optimization.wnl").as_double();
-
-  max_iteration_num_[0] = nh_->get_parameter("optimization.max_iteration_num1").as_int();
-  max_iteration_num_[1] = nh_->get_parameter("optimization.max_iteration_num2").as_int();
-  max_iteration_num_[2] = nh_->get_parameter("optimization.max_iteration_num3").as_int();
-  max_iteration_num_[3] = nh_->get_parameter("optimization.max_iteration_num4").as_int();
-  max_iteration_time_[0] = nh_->get_parameter("optimization.max_iteration_time1").as_double();
-  max_iteration_time_[1] = nh_->get_parameter("optimization.max_iteration_time2").as_double();
-  max_iteration_time_[2] = nh_->get_parameter("optimization.max_iteration_time3").as_double();
-  max_iteration_time_[3] = nh_->get_parameter("optimization.max_iteration_time4").as_double();
-
-  algorithm1_ = nh_->get_parameter("optimization.algorithm1").as_int();
-  algorithm2_ = nh_->get_parameter("optimization.algorithm2").as_int();
-  order_ = nh_->get_parameter("optimization.order").as_int();
-  RCLCPP_INFO_STREAM(nh_->get_logger(), "Bspline opt parameters:" <<
+  algorithm1_ = ros_node_->get_parameter("optimization.algorithm1").as_int();
+  algorithm2_ = ros_node_->get_parameter("optimization.algorithm2").as_int();
+  order_ = ros_node_->get_parameter("optimization.order").as_int();
+  RCLCPP_INFO_STREAM(ros_node_->get_logger(), "Bspline opt parameters:" <<
     " optimization.lambda1: " << lambda1_ << "\n" <<
     " optimization.lambda2: " << lambda2_ << "\n" <<
     " optimization.lambda3: " << lambda3_ << "\n" <<
@@ -206,7 +213,7 @@ void BsplineOptimizer::optimize() {
   opt.set_maxeval(max_iteration_num_[max_num_id_]);
   opt.set_maxtime(max_iteration_time_[max_time_id_]);
   opt.set_xtol_rel(1e-5);
-
+  std::cout << "Variable num:" << variable_num_ << "," << " order:" << order_;
   vector<double> q(variable_num_);
   for (int i = order_; i < pt_num; ++i) {
     if (!(cost_function_ & ENDPOINT) && i >= pt_num - order_) continue;
@@ -238,7 +245,7 @@ void BsplineOptimizer::optimize() {
     /* retrieve the optimization result */
     // cout << "Min cost:" << min_cost_ << endl;
   } catch (std::exception& e) {
-    std::cerr << "[Optimization]: nlopt exception";
+    std::cout << "[Optimization]: nlopt exception";
     cout << e.what() << endl;
   }
 

@@ -50,19 +50,19 @@ ament_target_dependencies(fast_planner_node ${DEPENDENCIES})
 target_link_libraries(fast_planner_node ${NLOPT_LIBRARIES})
 rosidl_target_interfaces(fast_planner_node ${PROJECT_NAME} "rosidl_typesupport_cpp")
 
-# add_executable(traj_server src/traj_server.cpp)
-# target_link_libraries(traj_server ${catkin_LIBRARIES})
-# add_dependencies(traj_server ${${PROJECT_NAME}_EXPORTED_TARGETS})
+add_executable(traj_server src/traj_server.cpp)
+ament_target_dependencies(traj_server ${DEPENDENCIES})
+target_link_libraries(traj_server ${catkin_LIBRARIES})
+rosidl_target_interfaces(traj_server ${PROJECT_NAME} "rosidl_typesupport_cpp")
+
 
 install(TARGETS fast_planner_node
    RUNTIME DESTINATION lib/${PROJECT_NAME}
 )
 
-# install(TARGETS traj_server
-#     ARCHIVE DESTINATION lib
-#     LIBRARY DESTINATION lib
-#     RUNTIME DESTINATION bin
-# )
+install(TARGETS traj_server
+    RUNTIME DESTINATION lib/${PROJECT_NAME}
+)
 
 install(
   DIRECTORY config
@@ -71,6 +71,11 @@ install(
 
 install(
   DIRECTORY launch
+  DESTINATION share/${PROJECT_NAME}
+)
+
+install(
+  FILES plan_manage_mapping_rule.yaml
   DESTINATION share/${PROJECT_NAME}
 )
 

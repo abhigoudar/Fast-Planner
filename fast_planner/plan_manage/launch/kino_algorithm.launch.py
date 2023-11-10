@@ -8,9 +8,9 @@ def generate_launch_description():
     #
     launch_description = [
         SetRemap(src='/odom_world', dst='/state_ukf/odom'),
-        SetRemap(src='/sdf/odom', dst='/state_ukf/odom'),
-        SetRemap(src='/sdf/depth', dst='/pcl_render_node/depth'),
-        SetRemap(src='/sdf/cloud', dst='/pcl_render_node/cloud'),
+        SetRemap(src='/sdf_map/odom', dst='/state_ukf/odom'),
+        SetRemap(src='/sdf_map/depth', dst='/pcl_render_node/depth'),
+        SetRemap(src='/sdf_map/cloud', dst='/pcl_render_node/cloud'),
     ]
     #
     launch_description.append(
@@ -30,6 +30,7 @@ def generate_launch_description():
             parameters=[LaunchConfiguration('fast_planner_config_file')],
             output="screen",
             emulate_tty=True,
+            # prefix=['xterm -e gdb -ex=r --args'],
         )
     )
 

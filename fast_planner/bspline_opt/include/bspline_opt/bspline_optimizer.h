@@ -26,6 +26,7 @@
 #ifndef _BSPLINE_OPTIMIZER_H_
 #define _BSPLINE_OPTIMIZER_H_
 
+#include <algorithm>
 #include <Eigen/Dense>
 #include <plan_env/edt_environment.h>
 #include <rclcpp/rclcpp.hpp>
@@ -74,8 +75,15 @@ public:
 
   Eigen::MatrixXd         getControlPoints();
   vector<Eigen::Vector3d> matrixToVectors(const Eigen::MatrixXd& ctrl_pts);
-
+  // TODO: This is not very elegent. Ideal way is to check against a list
+  template<typename T>
+  void declareParameterSafe(std::string param, T val)
+  {
+    if(!ros_node_->has_parameter(param))
+      ros_node_->declare_parameter(param, val);
+  }
 private:
+  rclcpp::Node::SharedPtr ros_node_;
   EDTEnvironment::Ptr edt_environment_;
 
   // main input

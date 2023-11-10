@@ -1,0 +1,5 @@
+-
+  ros1_package_name: 'plan_manage'
+  ros1_message_name: 'Bspline'
+  ros2_package_name: 'plan_manage'
+  ros2_message_name: 'Bspline'

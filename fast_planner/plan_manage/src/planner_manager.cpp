@@ -693,7 +693,6 @@ void FastPlannerManager::planYaw(const Eigen::Vector3d& start_yaw) {
   Eigen::Vector3d end_yaw(atan2(end_v(1), end_v(0)), 0, 0);
   calcNextYaw(last_yaw, end_yaw(0));
   yaw.block(seg_num, 0, 3, 1) = states2pts * end_yaw;
-
   // solve
   bspline_optimizers_[1]->setWaypoints(waypts, waypt_idx);
   int cost_func = BsplineOptimizer::SMOOTHNESS | BsplineOptimizer::WAYPOINTS;

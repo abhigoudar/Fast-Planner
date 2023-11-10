@@ -23,19 +23,23 @@
 
 
 
-#include "bspline/non_uniform_bspline.h"
+#include <bspline/non_uniform_bspline.h>
 #include "nav_msgs/msg/odometry.hpp"
-#include "plan_manage/msg/b_spline.hpp"
-#include "quadrotor_msgs/PositionCommand.h"
+#include "plan_manage/msg/bspline.hpp"
+// #include "quadrotor_msgs/PositionCommand.h"
 #include "std_msgs/msg/empty.hpp"
 #include "visualization_msgs/msg/marker.hpp"
-#include <ros/ros.h>
+#include <rclcpp/rclcpp.hpp>
 
-ros::Publisher cmd_vis_pub, pos_cmd_pub, traj_pub;
+rclcpp::Node::SharedPtr ros_node;
 
-nav_msgs::Odometry odom;
+rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr cmd_vis_pub;
+// rclcpp::Publisher<quadrotor_msgs::msg::PositionCommand>::SharedPtr pos_cmd_pub;
+rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr traj_pub;
 
-quadrotor_msgs::PositionCommand cmd;
+nav_msgs::msg::Odometry curr_odom;
+
+// quadrotor_msgs::PositionCommand cmd;
 // double pos_gain[3] = {5.7, 5.7, 6.2};
 // double vel_gain[3] = {3.4, 3.4, 4.0};
 double pos_gain[3] = { 5.7, 5.7, 6.2 };
@@ -46,7 +50,7 @@ using fast_planner::NonUniformBspline;
 bool receive_traj_ = false;
 vector<NonUniformBspline> traj_;
 double traj_duration_;
-ros::Time start_time_;
+rclcpp::Time start_time_;
 int traj_id_;
 
 // yaw control
@@ -55,18 +59,20 @@ double time_forward_;
 
 vector<Eigen::Vector3d> traj_cmd_, traj_real_;
 
-void displayTrajWithColor(vector<Eigen::Vector3d> path, double resolution, Eigen::Vector4d color,
+void displayTrajWithColor(vector<Eigen::Vector3d> path,
+                          double resolution,
+                          Eigen::Vector4d color,
                           int id) {
-  visualization_msgs::Marker mk;
+  visualization_msgs::msg::Marker mk;
   mk.header.frame_id = "world";
-  mk.header.stamp = ros::Time::now();
-  mk.type = visualization_msgs::Marker::SPHERE_LIST;
-  mk.action = visualization_msgs::Marker::DELETE;
+  mk.header.stamp = ros_node->get_clock()->now();
+  mk.type = visualization_msgs::msg::Marker::SPHERE_LIST;
+  mk.action = visualization_msgs::msg::Marker::DELETE;
   mk.id = id;
 
-  traj_pub.publish(mk);
+  traj_pub->publish(mk);
 
-  mk.action = visualization_msgs::Marker::ADD;
+  mk.action = visualization_msgs::msg::Marker::ADD;
   mk.pose.orientation.x = 0.0;
   mk.pose.orientation.y = 0.0;
   mk.pose.orientation.z = 0.0;
@@ -81,32 +87,32 @@ void displayTrajWithColor(vector<Eigen::Vector3d> path, double resolution, Eigen
   mk.scale.y = resolution;
   mk.scale.z = resolution;
 
-  geometry_msgs::Point pt;
+  geometry_msgs::msg::Point pt;
   for (int i = 0; i < int(path.size()); i++) {
     pt.x = path[i](0);
     pt.y = path[i](1);
     pt.z = path[i](2);
     mk.points.push_back(pt);
   }
-  traj_pub.publish(mk);
-  ros::Duration(0.001).sleep();
+  traj_pub->publish(mk);
+  std::this_thread::sleep_for(std::chrono::milliseconds(1));
 }
 
 void drawCmd(const Eigen::Vector3d& pos, const Eigen::Vector3d& vec, const int& id,
              const Eigen::Vector4d& color) {
-  visualization_msgs::Marker mk_state;
+  visualization_msgs::msg::Marker mk_state;
   mk_state.header.frame_id = "world";
-  mk_state.header.stamp = ros::Time::now();
+  mk_state.header.stamp = ros_node->get_clock()->now();
   mk_state.id = id;
-  mk_state.type = visualization_msgs::Marker::ARROW;
-  mk_state.action = visualization_msgs::Marker::ADD;
+  mk_state.type = visualization_msgs::msg::Marker::ARROW;
+  mk_state.action = visualization_msgs::msg::Marker::ADD;
 
   mk_state.pose.orientation.w = 1.0;
   mk_state.scale.x = 0.1;
   mk_state.scale.y = 0.2;
   mk_state.scale.z = 0.3;
 
-  geometry_msgs::Point pt;
+  geometry_msgs::msg::Point pt;
   pt.x = pos(0);
   pt.y = pos(1);
   pt.z = pos(2);
@@ -122,10 +128,10 @@ void drawCmd(const Eigen::Vector3d& pos, const Eigen::Vector3d& vec, const int& 
   mk_state.color.b = color(2);
   mk_state.color.a = color(3);
 
-  cmd_vis_pub.publish(mk_state);
+  cmd_vis_pub->publish(mk_state);
 }
 
-void bsplineCallback(plan_manage::BsplineConstPtr msg) {
+void bsplineCallback(plan_manage::msg::Bspline::SharedPtr msg) {
   // parse pos traj
 
   Eigen::MatrixXd pos_pts(msg->pos_pts.size(), 3);
@@ -153,7 +159,7 @@ void bsplineCallback(plan_manage::BsplineConstPtr msg) {
 
   NonUniformBspline yaw_traj(yaw_pts, msg->order, msg->yaw_dt);
 
-  start_time_ = msg->start_time;
+  start_time_ = rclcpp::Time(msg->start_time);
   traj_id_ = msg->traj_id;
 
   traj_.clear();
@@ -168,31 +174,31 @@ void bsplineCallback(plan_manage::BsplineConstPtr msg) {
   receive_traj_ = true;
 }
 
-void replanCallback(std_msgs::Empty msg) {
+void replanCallback(const std_msgs::msg::Empty::SharedPtr msg) {
   /* reset duration */
   const double time_out = 0.01;
-  ros::Time time_now = ros::Time::now();
-  double t_stop = (time_now - start_time_).toSec() + time_out;
+  rclcpp::Time time_now = ros_node->get_clock()->now();
+  double t_stop = time_now.seconds() - start_time_.seconds() + time_out;
   traj_duration_ = min(t_stop, traj_duration_);
 }
 
-void newCallback(std_msgs::Empty msg) {
+void newCallback(const std_msgs::msg::Empty::SharedPtr msg) {
   traj_cmd_.clear();
   traj_real_.clear();
 }
 
-void odomCallbck(const nav_msgs::Odometry& msg) {
-  if (msg.child_frame_id == "X" || msg.child_frame_id == "O") return;
+void odomCallbck(const nav_msgs::msg::Odometry::SharedPtr msg) {
+  if (msg->child_frame_id == "X" || msg->child_frame_id == "O") return;
 
-  odom = msg;
+  curr_odom = *msg;
 
   traj_real_.push_back(
-      Eigen::Vector3d(odom.pose.pose.position.x, odom.pose.pose.position.y, odom.pose.pose.position.z));
+      Eigen::Vector3d(curr_odom.pose.pose.position.x, curr_odom.pose.pose.position.y, curr_odom.pose.pose.position.z));
 
   if (traj_real_.size() > 10000) traj_real_.erase(traj_real_.begin(), traj_real_.begin() + 1000);
 }
 
-void visCallback(const ros::TimerEvent& e) {
+void visCallback() {
   // displayTrajWithColor(traj_real_, 0.03, Eigen::Vector4d(0.925, 0.054, 0.964,
   // 1),
   //                      1);
@@ -200,12 +206,12 @@ void visCallback(const ros::TimerEvent& e) {
   displayTrajWithColor(traj_cmd_, 0.05, Eigen::Vector4d(0, 1, 0, 1), 2);
 }
 
-void cmdCallback(const ros::TimerEvent& e) {
+void cmdCallback() {
   /* no publishing before receive traj_ */
   if (!receive_traj_) return;
 
-  ros::Time time_now = ros::Time::now();
-  double t_cur = (time_now - start_time_).toSec();
+  rclcpp::Time time_now = ros_node->get_clock()->now();
+  double t_cur = (time_now.seconds() - start_time_.seconds());
 
   Eigen::Vector3d pos, vel, acc, pos_f;
   double yaw, yawdot;
@@ -234,25 +240,25 @@ void cmdCallback(const ros::TimerEvent& e) {
     cout << "[Traj server]: invalid time." << endl;
   }
 
-  cmd.header.stamp = time_now;
-  cmd.header.frame_id = "world";
-  cmd.trajectory_flag = quadrotor_msgs::PositionCommand::TRAJECTORY_STATUS_READY;
-  cmd.trajectory_id = traj_id_;
+  // cmd.header.stamp = time_now;
+  // cmd.header.frame_id = "world";
+  // cmd.trajectory_flag = quadrotor_msgs::PositionCommand::TRAJECTORY_STATUS_READY;
+  // cmd.trajectory_id = traj_id_;
 
-  cmd.position.x = pos(0);
-  cmd.position.y = pos(1);
-  cmd.position.z = pos(2);
+  // cmd.position.x = pos(0);
+  // cmd.position.y = pos(1);
+  // cmd.position.z = pos(2);
 
-  cmd.velocity.x = vel(0);
-  cmd.velocity.y = vel(1);
-  cmd.velocity.z = vel(2);
+  // cmd.velocity.x = vel(0);
+  // cmd.velocity.y = vel(1);
+  // cmd.velocity.z = vel(2);
 
-  cmd.acceleration.x = acc(0);
-  cmd.acceleration.y = acc(1);
-  cmd.acceleration.z = acc(2);
+  // cmd.acceleration.x = acc(0);
+  // cmd.acceleration.y = acc(1);
+  // cmd.acceleration.z = acc(2);
 
-  cmd.yaw = yaw;
-  cmd.yaw_dot = yawdot;
+  // cmd.yaw = yaw;
+  // cmd.yaw_dot = yawdot;
 
   auto pos_err = pos_f - pos;
   // if (pos_err.norm() > 1e-3) {
@@ -262,9 +268,9 @@ void cmdCallback(const ros::TimerEvent& e) {
   // }
   // cmd.yaw_dot = 1.0;
 
-  last_yaw_ = cmd.yaw;
+  // last_yaw_ = cmd.yaw;
 
-  pos_cmd_pub.publish(cmd);
+  // pos_cmd_pub->publish(cmd);
 
   // draw cmd
 
@@ -280,39 +286,44 @@ void cmdCallback(const ros::TimerEvent& e) {
 }
 
 int main(int argc, char** argv) {
-  ros::init(argc, argv, "traj_server");
-  ros::NodeHandle node;
-  ros::NodeHandle nh("~");
+  rclcpp::init(argc, argv);
+  ros_node = std::make_shared<rclcpp::Node>
+    ("trajectory_server", rclcpp::NodeOptions());
 
-  ros::Subscriber bspline_sub = node.subscribe("planning/bspline", 10, bsplineCallback);
-  ros::Subscriber replan_sub = node.subscribe("planning/replan", 10, replanCallback);
-  ros::Subscriber new_sub = node.subscribe("planning/new", 10, newCallback);
-  ros::Subscriber odom_sub = node.subscribe("/odom_world", 50, odomCallbck);
+  auto bspline_sub = ros_node->create_subscription<plan_manage::msg::Bspline>
+    ("planning/bspline", rclcpp::SensorDataQoS(), std::bind(bsplineCallback, std::placeholders::_1));
+  auto replan_sub = ros_node->create_subscription<std_msgs::msg::Empty>
+    ("planning/replan", rclcpp::SensorDataQoS(), std::bind(replanCallback, std::placeholders::_1));
+  auto new_sub = ros_node->create_subscription<std_msgs::msg::Empty>
+    ("planning/new", rclcpp::SensorDataQoS(), std::bind(newCallback, std::placeholders::_1));
+  auto odom_sub = ros_node->create_subscription<nav_msgs::msg::Odometry>
+    ("/odom_world", rclcpp::SensorDataQoS(), std::bind(odomCallbck, std::placeholders::_1));
 
-  cmd_vis_pub = node.advertise<visualization_msgs::Marker>("planning/position_cmd_vis", 10);
-  pos_cmd_pub = node.advertise<quadrotor_msgs::PositionCommand>("/position_cmd", 50);
-  traj_pub = node.advertise<visualization_msgs::Marker>("planning/travel_traj", 10);
+  cmd_vis_pub = ros_node->create_publisher<visualization_msgs::msg::Marker>("planning/position_cmd_vis", 10);
+  // pos_cmd_pub = ros_node->create_publisher<quadrotor_msgs::msg::PositionCommand>("/position_cmd", 50);
+  traj_pub = ros_node->create_publisher<visualization_msgs::msg::Marker>("planning/travel_traj", 10);
 
-  ros::Timer cmd_timer = node.createTimer(ros::Duration(0.01), cmdCallback);
-  ros::Timer vis_timer = node.createTimer(ros::Duration(0.25), visCallback);
+  rclcpp::TimerBase::SharedPtr cmd_timer = ros_node->create_wall_timer
+    (std::chrono::milliseconds(100), cmdCallback);
+  rclcpp::TimerBase::SharedPtr vis_timer = ros_node->create_wall_timer
+    (std::chrono::milliseconds(250), visCallback);
 
   /* control parameter */
-  cmd.kx[0] = pos_gain[0];
-  cmd.kx[1] = pos_gain[1];
-  cmd.kx[2] = pos_gain[2];
+  // cmd.kx[0] = pos_gain[0];
+  // cmd.kx[1] = pos_gain[1];
+  // cmd.kx[2] = pos_gain[2];
 
-  cmd.kv[0] = vel_gain[0];
-  cmd.kv[1] = vel_gain[1];
-  cmd.kv[2] = vel_gain[2];
+  // cmd.kv[0] = vel_gain[0];
+  // cmd.kv[1] = vel_gain[1];
+  // cmd.kv[2] = vel_gain[2];
 
-  nh.param("traj_server.time_forward", time_forward_, -1.0);
-  last_yaw_ = 0.0;
+  // nh.param("traj_server.time_forward", time_forward_, -1.0);
+  // last_yaw_ = 0.0;
 
-  ros::Duration(1.0).sleep();
+  std::this_thread::sleep_for(std::chrono::seconds(1));
+  RCLCPP_WARN(ros_node->get_logger(), "[Traj server]: ready.");
 
-  ROS_WARN("[Traj server]: ready.");
-
-  ros::spin();
-
+  rclcpp::spin(ros_node);
+  rclcpp::shutdown();
   return 0;
 }
