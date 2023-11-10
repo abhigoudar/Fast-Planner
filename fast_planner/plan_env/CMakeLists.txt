@@ -53,3 +53,13 @@ add_executable(obj_generator
     )
 target_link_libraries(obj_generator 
     ${catkin_LIBRARIES})
+
+install(
+DIRECTORY include/
+DESTINATION include/
+)
+
+install(
+  TARGETS plan_env
+  LIBRARY DESTINATION lib/
+)

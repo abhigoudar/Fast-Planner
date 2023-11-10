@@ -29,3 +29,12 @@ add_library( poly_traj
 target_link_libraries( poly_traj
     ${catkin_LIBRARIES} 
     )  
+install(
+  TARGETS poly_traj
+  LIBRARY DESTINATION lib/
+)
+
+install(
+    DIRECTORY include/
+    DESTINATION include/
+)

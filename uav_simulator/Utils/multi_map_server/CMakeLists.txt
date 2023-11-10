@@ -45,7 +45,6 @@ project(multi_map_server)
 find_package(catkin REQUIRED COMPONENTS
   geometry_msgs
   nav_msgs
-  pose_utils
   message_generation
   roscpp
   visualization_msgs
@@ -166,7 +165,6 @@ add_dependencies(multi_map_visualization multi_map_server_messages_cpp)
 target_link_libraries(multi_map_visualization 
    ${catkin_LIBRARIES}
    ${ARMADILLO_LIBRARIES}
-   pose_utils
 )
 
 #############

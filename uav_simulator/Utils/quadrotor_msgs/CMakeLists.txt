@@ -102,6 +102,10 @@ find_package(Eigen3 REQUIRED)
 include_directories(${EIGEN3_INCLUDE_DIR})
 
 
+install(
+  TARGETS decode_msgs encode_msgs
+  LIBRARY DESTINATION lib/
+)
 # target_link_libraries(test_exe 
 #     decode_msgs 
 #     encode_msgs

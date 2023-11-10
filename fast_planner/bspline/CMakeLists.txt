@@ -10,7 +10,6 @@ find_package(catkin REQUIRED COMPONENTS
   rospy
   std_msgs
   visualization_msgs
-  plan_env
   cv_bridge
 )
 
@@ -37,3 +36,13 @@ add_library( bspline
 target_link_libraries( bspline
     ${catkin_LIBRARIES} 
     )  
+
+install(
+  TARGETS bspline
+  LIBRARY DESTINATION lib/
+)
+
+install(
+    DIRECTORY include/
+    DESTINATION include/
+)

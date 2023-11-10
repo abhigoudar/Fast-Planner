@@ -24,3 +24,13 @@ include_directories(
 add_library(pose_utils 
    ${ARMADILLO_LIBRARIES}
    src/pose_utils.cpp)
+
+install(
+  TARGETS pose_utils
+  LIBRARY DESTINATION lib/
+)
+
+install(
+  DIRECTORY include/
+  DESTINATION include/
+)

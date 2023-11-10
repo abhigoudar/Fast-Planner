@@ -40,3 +40,13 @@ add_library(bspline_opt
 target_link_libraries( bspline_opt
     ${catkin_LIBRARIES}
     )  
+
+install(
+  TARGETS bspline_opt
+  LIBRARY DESTINATION lib/
+)
+
+install(
+    DIRECTORY include/
+    DESTINATION include/
+)

@@ -40,3 +40,13 @@ add_library( path_searching
 target_link_libraries( path_searching
     ${catkin_LIBRARIES} 
     )  
+
+install(
+    TARGETS path_searching
+    LIBRARY DESTINATION lib/
+)
+
+install(
+    DIRECTORY include/
+    DESTINATION include/
+)
