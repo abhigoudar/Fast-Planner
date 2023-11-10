@@ -26,24 +26,28 @@
 #include <bspline/non_uniform_bspline.h>
 #include "nav_msgs/msg/odometry.hpp"
 #include "plan_manage/msg/bspline.hpp"
+#include "trajectory_msgs/msg/multi_dof_joint_trajectory.hpp"
 // #include "quadrotor_msgs/PositionCommand.h"
 #include "std_msgs/msg/empty.hpp"
 #include "visualization_msgs/msg/marker.hpp"
 #include <rclcpp/rclcpp.hpp>
 
+#include <Eigen/Dense>
+
 rclcpp::Node::SharedPtr ros_node;
 
 rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr cmd_vis_pub;
 // rclcpp::Publisher<quadrotor_msgs::msg::PositionCommand>::SharedPtr pos_cmd_pub;
+rclcpp::Publisher<trajectory_msgs::msg::MultiDOFJointTrajectory>::SharedPtr traj_cmd_pub;
 rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr traj_pub;
 
 nav_msgs::msg::Odometry curr_odom;
-
 // quadrotor_msgs::PositionCommand cmd;
 // double pos_gain[3] = {5.7, 5.7, 6.2};
 // double vel_gain[3] = {3.4, 3.4, 4.0};
 double pos_gain[3] = { 5.7, 5.7, 6.2 };
 double vel_gain[3] = { 3.4, 3.4, 4.0 };
+
 
 using fast_planner::NonUniformBspline;
 
@@ -239,6 +243,41 @@ void cmdCallback() {
   } else {
     cout << "[Traj server]: invalid time." << endl;
   }
+  Eigen::Quaterniond q = Eigen::AngleAxisd(0, Eigen::Vector3d::UnitX())
+    * Eigen::AngleAxisd(0, Eigen::Vector3d::UnitY())
+    * Eigen::AngleAxisd(yaw, Eigen::Vector3d::UnitZ());
+
+  trajectory_msgs::msg::MultiDOFJointTrajectoryPoint wp_;
+  geometry_msgs::msg::Transform pose;
+  pose.translation.x = pos(0);
+  pose.translation.y = pos(1);
+  pose.translation.z = pos(2);
+  pose.rotation.x = q.x();
+  pose.rotation.y = q.y();
+  pose.rotation.z = q.z();
+  pose.rotation.w = q.w();
+  //
+  geometry_msgs::msg::Twist twist;
+  twist.linear.x = vel(0);
+  twist.linear.y = vel(1);
+  twist.linear.z = vel(2);
+  twist.angular.x = 0;
+  twist.angular.y = 0;
+  twist.angular.z = yawdot;
+  //
+  geometry_msgs::msg::Twist accel;
+  accel.linear.x = acc(0);
+  accel.linear.y = acc(1);
+  accel.linear.z = acc(2);
+  accel.angular.x = 0;
+  accel.angular.y = 0;
+  accel.angular.z = 0;
+  //
+  wp_.transforms.push_back(pose);
+  wp_.velocities.push_back(twist);
+  wp_.accelerations.push_back(accel);
+  // TODO: Verify if this is correct
+  wp_.time_from_start = ros_node->get_clock()->now() - start_time_;
 
   // cmd.header.stamp = time_now;
   // cmd.header.frame_id = "world";
@@ -269,6 +308,12 @@ void cmdCallback() {
   // cmd.yaw_dot = 1.0;
 
   // last_yaw_ = cmd.yaw;
+  last_yaw_ = yaw;
+
+  trajectory_msgs::msg::MultiDOFJointTrajectory traj_msg;
+  traj_msg.header.stamp = ros_node->get_clock()->now();
+  traj_msg.header.frame_id = "world";
+  traj_cmd_pub->publish(traj_msg);
 
   // pos_cmd_pub->publish(cmd);
 
@@ -301,6 +346,7 @@ int main(int argc, char** argv) {
 
   cmd_vis_pub = ros_node->create_publisher<visualization_msgs::msg::Marker>("planning/position_cmd_vis", 10);
   // pos_cmd_pub = ros_node->create_publisher<quadrotor_msgs::msg::PositionCommand>("/position_cmd", 50);
+  traj_cmd_pub = ros_node->create_publisher<trajectory_msgs::msg::MultiDOFJointTrajectory>("trajectory_cmd", 20);
   traj_pub = ros_node->create_publisher<visualization_msgs::msg::Marker>("planning/travel_traj", 10);
 
   rclcpp::TimerBase::SharedPtr cmd_timer = ros_node->create_wall_timer
@@ -318,7 +364,7 @@ int main(int argc, char** argv) {
   // cmd.kv[2] = vel_gain[2];
 
   // nh.param("traj_server.time_forward", time_forward_, -1.0);
-  // last_yaw_ = 0.0;
+  last_yaw_ = 0.0;
 
   std::this_thread::sleep_for(std::chrono::seconds(1));
   RCLCPP_WARN(ros_node->get_logger(), "[Traj server]: ready.");

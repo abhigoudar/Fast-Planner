@@ -11,7 +11,8 @@ find_package(path_searching REQUIRED)
 find_package(bspline REQUIRED)
 find_package(bspline_opt REQUIRED)
 find_package(traj_utils REQUIRED)
-find_package(poly_traj)
+find_package(poly_traj REQUIRED)
+find_package(trajectory_msgs REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
 
 find_package(NLopt REQUIRED)
@@ -23,6 +24,7 @@ set(DEPENDENCIES
   bspline_opt
   traj_utils
   poly_traj
+  trajectory_msgs
 )
 # Generate messages in the 'msg' folder
 set(msg_files
