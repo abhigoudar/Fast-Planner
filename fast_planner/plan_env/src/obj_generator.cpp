@@ -108,11 +108,11 @@ int main(int argc, char** argv) {
     " obj_generator.interval: " << _interval);
 
   obj_pub = ros_node->create_publisher<visualization_msgs::msg::Marker>
-    ("/dynamic/obj", rclcpp::SystemDefaultsQoS());
+    ("dynamic/obj", rclcpp::SystemDefaultsQoS());
   for (int i = 0; i < obj_num; ++i) {
     auto pose_pub =
         ros_node->create_publisher<geometry_msgs::msg::PoseStamped>
-        ("/dynamic/pose_" + to_string(i), rclcpp::SystemDefaultsQoS());
+        ("dynamic/pose_" + to_string(i), rclcpp::SystemDefaultsQoS());
     pose_pubs.push_back(pose_pub);
   }
 

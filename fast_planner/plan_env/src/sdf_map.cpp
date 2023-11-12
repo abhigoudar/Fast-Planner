@@ -210,11 +210,11 @@ void SDFMap::initMap(const rclcpp::Node::SharedPtr nh) {
   /* init callback */
 
   depth_sub_ = std::make_shared<message_filters::Subscriber<sensor_msgs::msg::Image>>
-    (node_, "/sdf_map/depth");
+    (node_, "sdf_map/depth");
 
   if (mp_.pose_type_ == POSE_STAMPED) {
     pose_sub_ =  std::make_shared<message_filters::Subscriber<geometry_msgs::msg::PoseStamped>>
-        (node_, "/sdf_map/pose");
+        (node_, "sdf_map/pose");
 
     sync_image_pose_ = std::make_shared<message_filters::Synchronizer<SyncPolicyImagePose>>(
         SyncPolicyImagePose(100), *depth_sub_, *pose_sub_);
@@ -222,7 +222,7 @@ void SDFMap::initMap(const rclcpp::Node::SharedPtr nh) {
 
   } else if (mp_.pose_type_ == ODOMETRY) {
     odom_sub_ = std::make_shared<message_filters::Subscriber<nav_msgs::msg::Odometry>>
-      (node_, "/sdf_map/odom");
+      (node_, "odometry_source");
 
     sync_image_odom_ = std::make_shared<message_filters::Synchronizer<SyncPolicyImageOdom>>(
         SyncPolicyImageOdom(100), *depth_sub_, *odom_sub_);
@@ -231,10 +231,10 @@ void SDFMap::initMap(const rclcpp::Node::SharedPtr nh) {
 
   // use odometry and point cloud
   indep_cloud_sub_ = node_->create_subscription<sensor_msgs::msg::PointCloud2>
-    ("/sdf_map/cloud", rclcpp::SensorDataQoS(),
+    ("sdf_map/cloud", rclcpp::SensorDataQoS(),
     std::bind(&SDFMap::cloudCallback, this, std::placeholders::_1));
   indep_odom_sub_ = node_->create_subscription<nav_msgs::msg::Odometry>
-    ("/sdf_map/odom", rclcpp::SensorDataQoS(),
+    ("odometry_source", rclcpp::SensorDataQoS(),
     std::bind(&SDFMap::odomCallback, this, std::placeholders::_1));
 
   occ_timer_ = node_->create_wall_timer(std::chrono::milliseconds(50), 
@@ -244,13 +244,13 @@ void SDFMap::initMap(const rclcpp::Node::SharedPtr nh) {
   vis_timer_ = node_->create_wall_timer(std::chrono::milliseconds(50), 
     std::bind(&SDFMap::visCallback, this));
 
-  map_pub_ = node_->create_publisher<sensor_msgs::msg::PointCloud2>("/sdf_map/occupancy", 10);
-  map_inf_pub_ = node_->create_publisher<sensor_msgs::msg::PointCloud2>("/sdf_map/occupancy_inflate", 10);
-  esdf_pub_ = node_->create_publisher<sensor_msgs::msg::PointCloud2>("/sdf_map/esdf", 10);
-  update_range_pub_ = node_->create_publisher<visualization_msgs::msg::Marker>("/sdf_map/update_range", 10);
+  map_pub_ = node_->create_publisher<sensor_msgs::msg::PointCloud2>("sdf_map/occupancy", 10);
+  map_inf_pub_ = node_->create_publisher<sensor_msgs::msg::PointCloud2>("sdf_map/occupancy_inflate", 10);
+  esdf_pub_ = node_->create_publisher<sensor_msgs::msg::PointCloud2>("sdf_map/esdf", 10);
+  update_range_pub_ = node_->create_publisher<visualization_msgs::msg::Marker>("sdf_map/update_range", 10);
 
-  unknown_pub_ = node_->create_publisher<sensor_msgs::msg::PointCloud2>("/sdf_map/unknown", 10);
-  depth_pub_ = node_->create_publisher<sensor_msgs::msg::PointCloud2>("/sdf_map/depth_cloud", 10);
+  unknown_pub_ = node_->create_publisher<sensor_msgs::msg::PointCloud2>("sdf_map/unknown", 10);
+  depth_pub_ = node_->create_publisher<sensor_msgs::msg::PointCloud2>("sdf_map/depth_cloud", 10);
 
   md_.occ_need_update_ = false;
   md_.local_updated_ = false;

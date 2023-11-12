@@ -25,6 +25,8 @@
 
 #include <bspline/non_uniform_bspline.h>
 #include "nav_msgs/msg/odometry.hpp"
+#include "nav_msgs/msg/path.hpp"
+#include "geometry_msgs/msg/pose_stamped.hpp"
 #include "plan_manage/msg/bspline.hpp"
 #include "trajectory_msgs/msg/multi_dof_joint_trajectory.hpp"
 // #include "quadrotor_msgs/PositionCommand.h"
@@ -40,6 +42,7 @@ rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr cmd_vis_pub;
 // rclcpp::Publisher<quadrotor_msgs::msg::PositionCommand>::SharedPtr pos_cmd_pub;
 rclcpp::Publisher<trajectory_msgs::msg::MultiDOFJointTrajectory>::SharedPtr traj_cmd_pub;
 rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr traj_pub;
+rclcpp::Publisher<nav_msgs::msg::Path>::SharedPtr path_pub;
 
 nav_msgs::msg::Odometry curr_odom;
 // quadrotor_msgs::PositionCommand cmd;
@@ -210,6 +213,17 @@ void visCallback() {
   displayTrajWithColor(traj_cmd_, 0.05, Eigen::Vector4d(0, 1, 0, 1), 2);
 }
 
+void goalCB(const geometry_msgs::msg::PoseStamped::SharedPtr msg)
+{
+  RCLCPP_INFO(ros_node->get_logger(), " Recieved new goal.");
+  nav_msgs::msg::Path path_msg;
+  path_msg.header.frame_id = "world";
+  path_msg.header.stamp = ros_node->get_clock()->now();
+  path_msg.poses.push_back(*(msg));
+  //
+  path_pub->publish(path_msg);
+}
+
 void cmdCallback() {
   /* no publishing before receive traj_ */
   if (!receive_traj_) return;
@@ -309,10 +323,11 @@ void cmdCallback() {
 
   // last_yaw_ = cmd.yaw;
   last_yaw_ = yaw;
-
+  RCLCPP_INFO(ros_node->get_logger(), "Publishing trajectory");
   trajectory_msgs::msg::MultiDOFJointTrajectory traj_msg;
   traj_msg.header.stamp = ros_node->get_clock()->now();
   traj_msg.header.frame_id = "world";
+  traj_msg.points.push_back(wp_);
   traj_cmd_pub->publish(traj_msg);
 
   // pos_cmd_pub->publish(cmd);
@@ -342,12 +357,15 @@ int main(int argc, char** argv) {
   auto new_sub = ros_node->create_subscription<std_msgs::msg::Empty>
     ("planning/new", rclcpp::SensorDataQoS(), std::bind(newCallback, std::placeholders::_1));
   auto odom_sub = ros_node->create_subscription<nav_msgs::msg::Odometry>
-    ("/odom_world", rclcpp::SensorDataQoS(), std::bind(odomCallbck, std::placeholders::_1));
+    ("odometry_source", rclcpp::SensorDataQoS(), std::bind(odomCallbck, std::placeholders::_1));
+  auto goal_sub = ros_node->create_subscription<geometry_msgs::msg::PoseStamped>
+    ("/goal_pose", rclcpp::SensorDataQoS(), std::bind(goalCB, std::placeholders::_1));
 
   cmd_vis_pub = ros_node->create_publisher<visualization_msgs::msg::Marker>("planning/position_cmd_vis", 10);
   // pos_cmd_pub = ros_node->create_publisher<quadrotor_msgs::msg::PositionCommand>("/position_cmd", 50);
   traj_cmd_pub = ros_node->create_publisher<trajectory_msgs::msg::MultiDOFJointTrajectory>("trajectory_cmd", 20);
   traj_pub = ros_node->create_publisher<visualization_msgs::msg::Marker>("planning/travel_traj", 10);
+  path_pub = ros_node->create_publisher<nav_msgs::msg::Path>("waypoints", 10);
 
   rclcpp::TimerBase::SharedPtr cmd_timer = ros_node->create_wall_timer
     (std::chrono::milliseconds(100), cmdCallback);

@@ -84,15 +84,15 @@ void TopoReplanFSM::init(const rclcpp::Node::SharedPtr nh) {
   safety_timer_ = ros_node->create_wall_timer(std::chrono::milliseconds(50),
     std::bind(&TopoReplanFSM::checkCollisionCallback, this));
 
-  waypoint_sub_ = ros_node->create_subscription<nav_msgs::msg::Path>("/waypoint_generator/waypoints",
+  waypoint_sub_ = ros_node->create_subscription<nav_msgs::msg::Path>("waypoints",
     rclcpp::SystemDefaultsQoS(), std::bind(&TopoReplanFSM::waypointCallback, this, std::placeholders::_1));
 
-  odom_sub_ = ros_node->create_subscription<nav_msgs::msg::Odometry>("/odom_world",
+  odom_sub_ = ros_node->create_subscription<nav_msgs::msg::Odometry>("odometry_source",
     rclcpp::SystemDefaultsQoS(), std::bind(&TopoReplanFSM::odometryCallback, this, std::placeholders::_1));
 
-  replan_pub_  = ros_node->create_publisher<std_msgs::msg::Empty>("/planning/replan", 10);
-  new_pub_     = ros_node->create_publisher<std_msgs::msg::Empty>("/planning/new", 10);
-  bspline_pub_ = ros_node->create_publisher<plan_manage::msg::Bspline>("/planning/bspline", 10);
+  replan_pub_  = ros_node->create_publisher<std_msgs::msg::Empty>("planning/replan", 10);
+  new_pub_     = ros_node->create_publisher<std_msgs::msg::Empty>("/lanning/new", 10);
+  bspline_pub_ = ros_node->create_publisher<plan_manage::msg::Bspline>("planning/bspline", 10);
 }
 
 void TopoReplanFSM::waypointCallback(const nav_msgs::msg::Path::SharedPtr msg) {

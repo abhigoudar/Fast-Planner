@@ -102,14 +102,14 @@ void ObjPredictor::init() {
     obj_histories_.push_back(obj_his);
 
     auto pose_sub = node_handle_->create_subscription<geometry_msgs::msg::PoseStamped>(
-        "/dynamic/pose_" + std::to_string(i), rclcpp::SystemDefaultsQoS(),
+        "dynamic/pose_" + std::to_string(i), rclcpp::SystemDefaultsQoS(),
         std::bind(&ObjHistory::poseCallback, obj_his.get(), std::placeholders::_1));
 
     pose_subs_.push_back(pose_sub);
   }
 
   marker_sub_ = node_handle_->create_subscription<visualization_msgs::msg::Marker>(
-      "/dynamic/obj", rclcpp::SystemDefaultsQoS(),
+      "dynamic/obj", rclcpp::SystemDefaultsQoS(),
       std::bind(&ObjPredictor::markerCallback, this, std::placeholders::_1));
 
   /* update prediction */
