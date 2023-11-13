@@ -74,7 +74,7 @@ void SDFMap::initMap(const rclcpp::Node::SharedPtr nh) {
   node_->declare_parameter("sdf_map.frame_id", string("world"));
   node_->declare_parameter("sdf_map.local_bound_inflate", 1.0);
   node_->declare_parameter("sdf_map.local_map_margin", 1);
-  node_->declare_parameter("sdf_map.ground_height", 1.0);
+  node_->declare_parameter("sdf_map.ground_height", 0.05);
 
   mp_.resolution_ = node_->get_parameter("sdf_map.resolution").as_double();
   x_size = node_->get_parameter("sdf_map.map_size_x").as_double();
@@ -980,7 +980,8 @@ void SDFMap::cloudCallback(const sensor_msgs::msg::PointCloud2::SharedPtr img) {
   max_x = mp_.map_min_boundary_(0);
   max_y = mp_.map_min_boundary_(1);
   max_z = mp_.map_min_boundary_(2);
-
+  // TODO: Also use odometry to transform pointcloud here
+  // TODO: Boost for each
   for (size_t i = 0; i < latest_cloud.points.size(); ++i) {
     pt = latest_cloud.points[i];
     p3d(0) = pt.x, p3d(1) = pt.y, p3d(2) = pt.z;
