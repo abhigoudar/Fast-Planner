@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.5)
 project(plan_env)
 
 add_compile_options("-std=c++14")
+# set(CMAKE_BUILD_TYPE "Release")
 set(CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS} -O3 -Wall")
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
@@ -11,12 +12,16 @@ find_package(sensor_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(nav_msgs REQUIRED)
 find_package(visualization_msgs REQUIRED)
-find_package(cv_bridge REQUIRED)
-find_package(message_filters REQUIRED)
 
 find_package(eigen3_cmake_module REQUIRED)
 find_package(Eigen3)
+
+find_package(cv_bridge REQUIRED)
+find_package(message_filters REQUIRED)
+
 find_package(PCL REQUIRED)
+find_package(pcl_ros REQUIRED)
+
 
 set(
     DEPENDENCIES
@@ -28,6 +33,7 @@ set(
     cv_bridge
     message_filters
     PCL
+    pcl_ros
 )
 
 include_directories( 

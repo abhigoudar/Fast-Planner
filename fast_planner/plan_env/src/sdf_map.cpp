@@ -942,15 +942,20 @@ void SDFMap::odomCallback(const nav_msgs::msg::Odometry::SharedPtr odom) {
   md_.camera_pos_(0) = odom->pose.pose.position.x;
   md_.camera_pos_(1) = odom->pose.pose.position.y;
   md_.camera_pos_(2) = odom->pose.pose.position.z;
+  md_.camera_q_ = Eigen::Quaterniond(odom->pose.pose.orientation.w, 
+    odom->pose.pose.orientation.x, odom->pose.pose.orientation.y,
+    odom->pose.pose.orientation.z).normalized();
 
   md_.has_odom_ = true;
 }
 
 void SDFMap::cloudCallback(const sensor_msgs::msg::PointCloud2::SharedPtr img) {
 
+  static const Eigen::Quaterniond q_opt_body(0.5, -0.5, 0.5, -0.5);
   pcl::PointCloud<pcl::PointXYZ> latest_cloud;
   pcl::fromROSMsg(*img, latest_cloud);
-
+  // printf("q_opt_body:[%.3f, %.3f, %.3f, %.3f]\n", q_opt_body.x(), 
+  //   q_opt_body.y(), q_opt_body.z(), q_opt_body.w());
   md_.has_cloud_ = true;
 
   if (!md_.has_odom_) {
@@ -966,7 +971,7 @@ void SDFMap::cloudCallback(const sensor_msgs::msg::PointCloud2::SharedPtr img) {
                     md_.camera_pos_ + mp_.local_update_range_);
 
   pcl::PointXYZ pt;
-  Eigen::Vector3d p3d, p3d_inf;
+  Eigen::Vector3d pt_tr, p3d, p3d_inf;
 
   int inf_step = ceil(mp_.obstacles_inflation_ / mp_.resolution_);
   int inf_step_z = 1;
@@ -980,17 +985,29 @@ void SDFMap::cloudCallback(const sensor_msgs::msg::PointCloud2::SharedPtr img) {
   max_x = mp_.map_min_boundary_(0);
   max_y = mp_.map_min_boundary_(1);
   max_z = mp_.map_min_boundary_(2);
-  // TODO: Also use odometry to transform pointcloud here
-  // TODO: Boost for each
+
   for (size_t i = 0; i < latest_cloud.points.size(); ++i) {
     pt = latest_cloud.points[i];
-    p3d(0) = pt.x, p3d(1) = pt.y, p3d(2) = pt.z;
+    pt_tr[0] = pt.x;
+    pt_tr[1] = pt.y;
+    pt_tr[2] = pt.z;
+    // transform from optical frame to body frame
+    pt_tr = q_opt_body * pt_tr;
+    // transform from body frame to world frame
+    pt_tr = md_.camera_q_ * pt_tr;
+    pt_tr += md_.camera_pos_;
 
+    p3d(0) = pt_tr[0];
+    p3d(1) = pt_tr[1];
+    p3d(2) = pt_tr[2];
+    // printf("Before:[%.3f, %.3f, %.3f] after:[%.3f, %.3f, %.3f]\n",
+    //   pt.x, pt.y, pt.z, p3d(0), p3d(1), p3d(2));
     /* point inside update range */
     Eigen::Vector3d devi = p3d - md_.camera_pos_;
     Eigen::Vector3i inf_pt;
 
-    if (fabs(devi(0)) < mp_.local_update_range_(0) && fabs(devi(1)) < mp_.local_update_range_(1) &&
+    if (fabs(devi(0)) < mp_.local_update_range_(0) && 
+        fabs(devi(1)) < mp_.local_update_range_(1) &&
         fabs(devi(2)) < mp_.local_update_range_(2)) {
 
       /* inflate the point */
@@ -998,9 +1015,9 @@ void SDFMap::cloudCallback(const sensor_msgs::msg::PointCloud2::SharedPtr img) {
         for (int y = -inf_step; y <= inf_step; ++y)
           for (int z = -inf_step_z; z <= inf_step_z; ++z) {
 
-            p3d_inf(0) = pt.x + x * mp_.resolution_;
-            p3d_inf(1) = pt.y + y * mp_.resolution_;
-            p3d_inf(2) = pt.z + z * mp_.resolution_;
+            p3d_inf(0) = pt_tr.x() + x * mp_.resolution_;
+            p3d_inf(1) = pt_tr.y() + y * mp_.resolution_;
+            p3d_inf(2) = pt_tr.z() + z * mp_.resolution_;
 
             max_x = max(max_x, p3d_inf(0));
             max_y = max(max_y, p3d_inf(1));
