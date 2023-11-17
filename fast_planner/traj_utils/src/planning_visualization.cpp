@@ -32,27 +32,27 @@ PlanningVisualization::PlanningVisualization(const rclcpp::Node::SharedPtr nh) {
   node = nh;
 
   traj_pub_ = node->create_publisher<visualization_msgs::msg::Marker>
-  ("/planning_vis/trajectory", rclcpp::SystemDefaultsQoS());
+  ("planning_vis/trajectory", rclcpp::SystemDefaultsQoS());
   pubs_.push_back(traj_pub_);
 
   topo_pub_ = node->create_publisher<visualization_msgs::msg::Marker>
-  ("/planning_vis/topo_path", rclcpp::SystemDefaultsQoS());
+  ("planning_vis/topo_path", rclcpp::SystemDefaultsQoS());
   pubs_.push_back(topo_pub_);
 
   predict_pub_ = node->create_publisher<visualization_msgs::msg::Marker>
-  ("/planning_vis/prediction", rclcpp::SystemDefaultsQoS());
+  ("planning_vis/prediction", rclcpp::SystemDefaultsQoS());
   pubs_.push_back(predict_pub_);
 
   visib_pub_ = node->create_publisher<visualization_msgs::msg::Marker>
-  ("/planning_vis/visib_constraint", rclcpp::SystemDefaultsQoS());
+  ("planning_vis/visib_constraint", rclcpp::SystemDefaultsQoS());
   pubs_.push_back(visib_pub_);
 
   frontier_pub_ = node->create_publisher<visualization_msgs::msg::Marker>
-  ("/planning_vis/frontier", rclcpp::SystemDefaultsQoS());
+  ("planning_vis/frontier", rclcpp::SystemDefaultsQoS());
   pubs_.push_back(frontier_pub_);
 
   yaw_pub_ = node->create_publisher<visualization_msgs::msg::Marker>
-  ("/planning_vis/yaw", rclcpp::SystemDefaultsQoS());
+  ("planning_vis/yaw", rclcpp::SystemDefaultsQoS());
   pubs_.push_back(yaw_pub_);
 
   last_topo_path1_num_     = 0;
